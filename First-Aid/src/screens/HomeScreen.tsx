@@ -1,5 +1,7 @@
 // src/screens/HomeScreen.tsx
 import { Card, CardContent } from "@/components/ui/Card";
+import ContactManager from "@/components/ContactManager";
+import SosButtonNative from "@/components/SosButtonNative";
 import {
   Activity,
   Droplet,
@@ -8,7 +10,7 @@ import {
   PackageCheck,
   Shield,
 } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   Image,
   ScrollView,
@@ -22,6 +24,7 @@ interface HomeScreenProps {
 }
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
+  const [emergencyContacts, setEmergencyContacts] = useState<string[]>([]);
 
   const emergencyCategories = [
     {
@@ -75,17 +78,40 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         contentContainerStyle={{ paddingBottom: 40 }}
       >
         {/* Header */}
-        <View className="bg-primary items-center justify-center py-8 px-6">
+        <View className="bg-primary items-center justify-center px-6">
           <Image
             source={LifeAidLogo}
             resizeMode="contain"
-            className="h-28 w-28 mb-2"
+            className="h-60 w-60"
           />
         </View>
 
         {/* Content */}
         <View className="p-4">
+          {/* Emergency Alert Card */}
+          <Card className="mb-6 bg-red-50 border-2 border-red-500">
+            <CardContent className="p-6">
+              <Text className="text-3xl font-bold text-center text-red-600 mb-6">
+                ¿Estás en peligro?
+              </Text>
+              
+              {/* SOS Button */}
+              <View className="items-center mb-6">
+                <SosButtonNative 
+                  contacts={emergencyContacts}
+                  style={{ marginBottom: 0 }}
+                />
+              </View>
+
+              {/* Contact Manager */}
+              <ContactManager 
+                onContactsChange={setEmergencyContacts}
+              />
+            </CardContent>
+          </Card>
+
           {/* Categories Grid */}
+
           <View className="space-y-4">
             <Text className="text-lg font-semibold text-foreground mb-2">
               Guías de Primeros Auxilios
