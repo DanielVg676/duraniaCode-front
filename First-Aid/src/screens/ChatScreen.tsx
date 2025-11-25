@@ -168,8 +168,8 @@ const ChatScreen = () => {
   return (
     <KeyboardAvoidingView 
       className="flex-1 bg-background"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 50}
     >
       {/* Header */}
       <View className="bg-primary p-4 flex-row items-center justify-between">
@@ -238,13 +238,12 @@ const ChatScreen = () => {
           {['Desmayo', 'Sangrado', 'Quemadura', 'Fractura', 'Ahogamiento'].map((quickOption) => (
             <Button
               key={quickOption}
-              variant="outline"
               size="sm"
-              className="mr-2"
+              className="mr-2 bg-gray-200 p-3 rounded-2xl"
               onPress={() => setInputValue(quickOption)}
               disabled={isTyping}
             >
-              <Text className="text-xs">{quickOption}</Text>
+              <Text className="text-xs text-gray-900">{quickOption}</Text>
             </Button>
           ))}
         </ScrollView>
