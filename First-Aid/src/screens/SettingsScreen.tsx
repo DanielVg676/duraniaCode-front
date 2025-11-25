@@ -2,17 +2,18 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
 import { Switch } from '@/components/ui/Switch';
+import { cn } from '@/lib/utils';
 import {
-    Download,
-    Globe,
-    Heart,
-    Info,
-    MapPin,
-    Moon,
-    Phone,
-    Settings as SettingsIcon,
-    Shield,
-    Users
+  Download,
+  Globe,
+  Heart,
+  Info,
+  MapPin,
+  Moon,
+  Phone,
+  Settings as SettingsIcon,
+  Shield,
+  Users
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { Linking, ScrollView, Text, View } from 'react-native';
@@ -76,30 +77,48 @@ const SettingsScreen = () => {
   ];
 
   return (
-    <ScrollView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="bg-primary p-6 items-center">
-        <SettingsIcon size={32} color="white" style={{ marginBottom: 8 }} />
-        <Text className="text-xl font-bold text-primary-foreground">Configuración</Text>
-        <Text className="text-primary-foreground/80 text-sm text-center">Personaliza tu experiencia FirstAId</Text>
+    <ScrollView className="flex-1 bg-slate-50">
+      {/* Header Moderno con Gradiente Visual */}
+      <View className="bg-blue-600 pt-12 pb-8 px-6">
+        <View className="items-center">
+          <View className="bg-blue-500 p-4 rounded-2xl shadow-lg mb-3">
+            <SettingsIcon size={32} color="white" />
+          </View>
+          <Text className="text-2xl font-bold text-white mb-1">Configuración</Text>
+          <Text className="text-blue-100 text-sm text-center">Personaliza tu experiencia FirstAId</Text>
+        </View>
       </View>
 
-      <View className="p-4 space-y-6">
+      <View className="px-4 -mt-4 space-y-4 pb-6">
         {/* General Settings */}
-        <Card className="mb-4">
-          <CardHeader>
-            <CardTitle className="text-lg">Configuración General</CardTitle>
+        <Card className="mb-4 bg-white rounded-2xl shadow-md border-0">
+          <CardHeader className="pb-3">
+            <View className="flex-row items-center gap-2">
+              <View className="bg-blue-50 p-2 rounded-lg">
+                <SettingsIcon size={18} color="#2563EB" />
+              </View>
+              <CardTitle className="text-lg text-slate-800">Configuración General</CardTitle>
+            </View>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {settingsOptions.map((option) => {
+          <CardContent className="space-y-1">
+            {settingsOptions.map((option, index) => {
               const Icon = option.icon;
               return (
-                <View key={option.title} className="flex-row items-center justify-between py-2">
+                <View 
+                  key={option.title} 
+                  className={cn(
+                    "flex-row items-center justify-between py-3.5 px-3 rounded-xl",
+                    index !== settingsOptions.length - 1 && "mb-1"
+                  )}
+                  style={{ backgroundColor: '#F8FAFC' }}
+                >
                   <View className="flex-row items-center gap-3 flex-1">
-                    <Icon size={20} color="#6b7280" />
+                    <View className="bg-white p-2 rounded-lg shadow-sm">
+                      <Icon size={20} color="#3B82F6" />
+                    </View>
                     <View className="flex-1">
-                      <Text className="font-medium text-foreground">{option.title}</Text>
-                      <Text className="text-sm text-muted-foreground">{option.description}</Text>
+                      <Text className="font-semibold text-slate-800">{option.title}</Text>
+                      <Text className="text-xs text-slate-500 mt-0.5">{option.description}</Text>
                     </View>
                   </View>
                   
@@ -108,11 +127,14 @@ const SettingsScreen = () => {
                       checked={option.value as boolean}
                       onCheckedChange={option.onChange}
                       disabled={option.disabled}
+                      className="ml-2"
                     />
                   )}
                   
                   {option.action === 'select' && (
-                    <Badge variant="outline">ES</Badge>
+                    <Badge className="bg-blue-100 border-0 text-blue-700">
+                      ES
+                    </Badge>
                   )}
                 </View>
               );
@@ -121,30 +143,40 @@ const SettingsScreen = () => {
         </Card>
 
         {/* Emergency Contacts */}
-        <Card className="mb-4">
-          <CardHeader>
+        <Card className="mb-4 bg-white rounded-2xl shadow-md border-0">
+          <CardHeader className="pb-3">
             <View className="flex-row items-center gap-2">
-              <Phone size={20} color="#3b82f6" />
-              <Text className="text-lg font-semibold">Contactos de Emergencia</Text>
+              <View className="bg-red-50 p-2 rounded-lg">
+                <Phone size={20} color="#EF4444" />
+              </View>
+              <Text className="text-lg font-bold text-slate-800">Contactos de Emergencia</Text>
             </View>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {emergencyContacts.map((contact) => (
-              <View key={contact.number} className="flex-row items-center justify-between py-2">
+          <CardContent className="space-y-2">
+            {emergencyContacts.map((contact, index) => (
+              <View 
+                key={contact.number} 
+                className={cn(
+                  "flex-row items-center justify-between p-3 rounded-xl",
+                  index !== emergencyContacts.length - 1 && "mb-1"
+                )}
+                style={{ backgroundColor: '#FEF2F2' }}
+              >
                 <View className="flex-1">
-                  <Text className="font-medium text-foreground">{contact.name}</Text>
-                  <Text className="text-sm text-muted-foreground">{contact.type}</Text>
+                  <Text className="font-bold text-slate-800">{contact.name}</Text>
+                  <Text className="text-xs text-slate-600 mt-0.5">{contact.type}</Text>
                 </View>
-                <View className="items-end">
-                  <Badge className="bg-red-600 mb-2">
-                    {contact.number}
-                  </Badge>
+                <View className="items-end gap-2">
+                  <View className="bg-red-600 px-3 py-1.5 rounded-full shadow-sm">
+                    <Text className="text-white font-bold text-sm">{contact.number}</Text>
+                  </View>
                   <Button 
                     size="sm" 
-                    variant="outline"
+                    className="bg-red-500 h-8 px-4 rounded-full"
                     onPress={() => Linking.openURL(`tel:${contact.number}`)}
+                    textClassName="text-white text-xs font-semibold"
                   >
-                    <Text className="text-xs">Llamar</Text>
+                    Llamar
                   </Button>
                 </View>
               </View>
@@ -153,69 +185,88 @@ const SettingsScreen = () => {
         </Card>
 
         {/* App Info */}
-        <Card className="mb-4">
-          <CardHeader>
+        <Card className="mb-4 bg-white rounded-2xl shadow-md border-0">
+          <CardHeader className="pb-3">
             <View className="flex-row items-center gap-2">
-              <Info size={20} color="#3b82f6" />
-              <Text className="text-lg font-semibold">Información de la App</Text>
+              <View className="bg-blue-50 p-2 rounded-lg">
+                <Info size={20} color="#3B82F6" />
+              </View>
+              <Text className="text-lg font-bold text-slate-800">Información de la App</Text>
             </View>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <View className="space-y-3">
-              <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-sm text-muted-foreground">Versión</Text>
-                <Badge variant="outline">1.0.0</Badge>
+          <CardContent>
+            <View className="space-y-1">
+              <View className="flex-row justify-between items-center py-3 px-3 rounded-xl" style={{ backgroundColor: '#F1F5F9' }}>
+                <Text className="text-sm font-semibold text-slate-700">Versión</Text>
+                <View className="bg-blue-100 px-3 py-1 rounded-full">
+                  <Text className="text-blue-700 font-bold text-xs">1.0.0</Text>
+                </View>
               </View>
               
-              <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-sm text-muted-foreground">Modo</Text>
-                <Badge className="bg-green-600">Offline</Badge>
+              <View className="flex-row justify-between items-center py-3 px-3 rounded-xl" style={{ backgroundColor: '#F1F5F9' }}>
+                <Text className="text-sm font-semibold text-slate-700">Modo</Text>
+                <View className="bg-green-100 px-3 py-1 rounded-full">
+                  <Text className="text-green-700 font-bold text-xs">Offline</Text>
+                </View>
               </View>
               
-              <View className="flex-row justify-between items-center mb-3">
-                <Text className="text-sm text-muted-foreground">Guías disponibles</Text>
-                <Badge variant="outline">10</Badge>
+              <View className="flex-row justify-between items-center py-3 px-3 rounded-xl" style={{ backgroundColor: '#F1F5F9' }}>
+                <Text className="text-sm font-semibold text-slate-700">Guías disponibles</Text>
+                <View className="bg-blue-100 px-3 py-1 rounded-full">
+                  <Text className="text-blue-700 font-bold text-xs">10</Text>
+                </View>
               </View>
               
-              <View className="flex-row justify-between items-center">
-                <Text className="text-sm text-muted-foreground">Última actualización</Text>
-                <Text className="text-sm text-foreground">20 Ago 2025</Text>
+              <View className="flex-row justify-between items-center py-3 px-3 rounded-xl" style={{ backgroundColor: '#F1F5F9' }}>
+                <Text className="text-sm font-semibold text-slate-700">Última actualización</Text>
+                <Text className="text-sm font-semibold text-slate-600">20 Ago 2025</Text>
               </View>
             </View>
           </CardContent>
         </Card>
 
         {/* Credits */}
-        <Card className="mb-4">
-          <CardHeader>
+        <Card className="mb-4 bg-gradient-to-br from-blue-50 to-white rounded-2xl shadow-md border-0" style={{ backgroundColor: '#EFF6FF' }}>
+          <CardHeader className="pb-3">
             <View className="flex-row items-center gap-2">
-              <Heart size={20} color="#ef4444" />
-              <Text className="text-lg font-semibold">Acerca de FirstAId</Text>
+              <View className="bg-red-50 p-2 rounded-lg">
+                <Heart size={20} color="#EF4444" />
+              </View>
+              <Text className="text-lg font-bold text-slate-800">Acerca de FirstAId</Text>
             </View>
           </CardHeader>
           <CardContent>
             <View className="space-y-4">
-              <Text className="text-sm text-muted-foreground leading-relaxed">
+              <Text className="text-sm text-slate-600 leading-relaxed">
                 FirstAId es tu compañero confiable para emergencias médicas. 
                 Diseñado para funcionar sin conexión a internet, te proporciona 
                 acceso inmediato a guías de primeros auxilios y un asistente IA.
               </Text>
               
-              <View className="flex-row items-center gap-2 mb-3">
-                <Users size={16} color="#6b7280" />
-                <Text className="text-sm text-muted-foreground flex-1">Desarrollado por el equipo FirstAId</Text>
+              <View className="bg-white p-3 rounded-xl shadow-sm mb-2">
+                <View className="flex-row items-center gap-2 mb-2">
+                  <View className="bg-blue-50 p-1.5 rounded-lg">
+                    <Users size={16} color="#3B82F6" />
+                  </View>
+                  <Text className="text-sm text-slate-700 font-medium flex-1">Desarrollado por el equipo FirstAId</Text>
+                </View>
               </View>
               
-              <View className="flex-row items-center gap-2 mb-3">
-                <Shield size={16} color="#6b7280" />
-                <Text className="text-sm text-muted-foreground flex-1">Contenido validado por profesionales médicos</Text>
+              <View className="bg-white p-3 rounded-xl shadow-sm">
+                <View className="flex-row items-center gap-2">
+                  <View className="bg-green-50 p-1.5 rounded-lg">
+                    <Shield size={16} color="#10B981" />
+                  </View>
+                  <Text className="text-sm text-slate-700 font-medium flex-1">Contenido validado por profesionales médicos</Text>
+                </View>
               </View>
               
-              <View className="pt-4 border-t border-border">
-                <Text className="text-xs text-muted-foreground leading-relaxed">
-                  <Text className="font-bold">Aviso importante:</Text> Esta aplicación proporciona información 
+              <View className="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-200">
+                <Text className="text-xs text-slate-700 leading-relaxed">
+                  <Text className="font-bold text-amber-800">⚠️ Aviso importante:</Text>
+                  <Text className="text-slate-600"> Esta aplicación proporciona información 
                   de primeros auxilios básicos. En caso de emergencia grave, 
-                  siempre llama a los servicios de emergencia profesionales.
+                  siempre llama a los servicios de emergencia profesionales.</Text>
                 </Text>
               </View>
             </View>
@@ -224,14 +275,18 @@ const SettingsScreen = () => {
 
         {/* Action Buttons */}
         <View className="space-y-3 mb-6">
-          <Button variant="outline" className="w-full flex-row items-center justify-center">
-            <Download size={16} color="#3b82f6" />
-            <Text className="ml-2">Descargar Guías Adicionales</Text>
+          <Button className="w-full bg-blue-600 h-12 rounded-2xl shadow-md">
+            <View className="flex-row items-center justify-center gap-2">
+              <Download size={18} color="white" />
+              <Text className="text-white font-semibold">Descargar Guías Adicionales</Text>
+            </View>
           </Button>
           
-          <Button variant="outline" className="w-full flex-row items-center justify-center">
-            <Info size={16} color="#3b82f6" />
-            <Text className="ml-2">Tutorial de la App</Text>
+          <Button variant="outline" className="w-full h-12 rounded-2xl border-2 border-blue-200 bg-white">
+            <View className="flex-row items-center justify-center gap-2">
+              <Info size={18} color="#3B82F6" />
+              <Text className="text-blue-600 font-semibold">Tutorial de la App</Text>
+            </View>
           </Button>
         </View>
       </View>
