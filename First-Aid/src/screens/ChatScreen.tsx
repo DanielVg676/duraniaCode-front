@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
+import * as Speech from 'expo-speech';
 import { Bot, Mic, Phone, Send, User, Volume2, VolumeX, X } from 'lucide-react-native'; // Añadido Volume2 y VolumeX
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -10,7 +11,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import * as Speech from 'expo-speech';
 
 interface Message {
   id: string;
