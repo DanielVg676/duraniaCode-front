@@ -1,14 +1,15 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
-import { Bot, Phone, Send, User } from 'lucide-react-native';
-import React, { useEffect, useRef, useState } from 'react';
+import * as Speech from 'expo-speech';
+import { Bot, Mic, Phone, Send, User, Volume2, VolumeX, X } from 'lucide-react-native'; // Añadido Volume2 y VolumeX
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-    FlatList,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    View,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 
 interface Message {
@@ -22,7 +23,7 @@ const ChatScreen = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hola, soy tu asistente de emergencias FirstAId. ¿Qué está pasando? Describe la situación y te ayudaré con los primeros auxilios apropiados.',
+      content: 'Hola, soy tu asistente FirstAId. 🚑\nEstoy aquí para guiarte. ¿Cuál es la emergencia?',
       sender: 'ai',
       timestamp: new Date()
     }
@@ -30,52 +31,83 @@ const ChatScreen = () => {
   
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [ttsEnabled, setTtsEnabled] = useState(true);
   const flatListRef = useRef<FlatList>(null);
 
-  const scrollToBottom = () => {
+  // Leer mensaje de bienvenida
+  useEffect(() => {
+    setTimeout(() => {
+      speak('Hola, soy tu asistente FirstAId. Estoy aquí para guiarte. ¿Cuál es la emergencia?');
+    }, 1000);
+
+    return () => {
+      Speech.stop();
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Función para hablar el texto
+  const speak = useCallback((text: string) => {
+    if (!ttsEnabled) return;
+    
+    try {
+      Speech.stop();
+      setIsSpeaking(true);
+      Speech.speak(text, {
+        language: 'es-ES',
+        pitch: 1,
+        rate: 0.6,
+        onDone: () => setIsSpeaking(false),
+        onStopped: () => setIsSpeaking(false),
+        onError: () => setIsSpeaking(false)
+      });
+    } catch (error) {
+      console.error('Error al hablar:', error);
+      setIsSpeaking(false);
+    }
+  }, [ttsEnabled]);
+
+  // Función para detener el habla
+  const stopSpeaking = useCallback(() => {
+    try {
+      Speech.stop();
+      setIsSpeaking(false);
+    } catch (error) {
+      console.error('Error al detener:', error);
+    }
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
     if (flatListRef.current && messages.length > 0) {
       flatListRef.current.scrollToEnd({ animated: true });
     }
-  };
+  }, [messages.length]);
 
   useEffect(() => {
     setTimeout(() => scrollToBottom(), 100);
-  }, [messages]);
+  }, [messages, scrollToBottom]);
 
-  // Simulated AI responses for different emergency scenarios
+  // Lógica simulada del micrófono
+  const toggleRecording = () => {
+    setIsRecording(!isRecording);
+    if (!isRecording) {
+      // Simular que escucha y escribe algo
+      setTimeout(() => {
+        setInputValue("Tengo un corte profundo en el brazo");
+        setIsRecording(false);
+      }, 2000);
+    }
+  };
+
+  // Simulated AI responses (Misma lógica, solo simplifiqué para el ejemplo visual)
   const getAIResponse = (userMessage: string): string => {
     const message = userMessage.toLowerCase();
-    
-    if (message.includes('desmay') || message.includes('inconsciente')) {
-      return 'Si alguien se ha desmayado:\n\n1. Verifica si responde tocando sus hombros\n2. Si no responde, llama al 911 inmediatamente\n3. Colócalo boca arriba en superficie firme\n4. Inclina su cabeza hacia atrás y levanta el mentón\n5. Verifica si respira normalmente\n\n¿La persona está respirando?';
-    }
-    
     if (message.includes('sangra') || message.includes('herida') || message.includes('corte')) {
-      return 'Para controlar una hemorragia:\n\n1. Ponte guantes o usa una barrera protectora\n2. Aplica presión directa sobre la herida con un paño limpio\n3. Mantén presión constante, no quites el paño\n4. Si es posible, eleva la zona por encima del corazón\n\n¿El sangrado es abundante? ¿Hay objetos incrustados en la herida?';
+      return 'Para controlar una hemorragia:\n\n1. Ponte guantes o usa una barrera protectora\n2. Aplica presión directa sobre la herida con un paño limpio\n3. Mantén presión constante\n4. Eleva la zona afectada\n\n¿El sangrado es abundante?';
     }
-    
-    if (message.includes('quemad') || message.includes('quemó')) {
-      return 'Para tratar una quemadura:\n\n1. Enfría con agua fría (no helada) por 10-20 minutos\n2. Retira anillos y ropa suelta antes de la hinchazón\n3. No uses hielo, mantequilla o remedios caseros\n4. Cubre con paño limpio y húmedo\n\n¿Qué tan grande es la quemadura? ¿Hay ampollas?';
-    }
-    
-    if (message.includes('fractura') || message.includes('roto') || message.includes('hueso')) {
-      return 'Para una posible fractura:\n\n1. NO muevas a la persona innecesariamente\n2. Inmoviliza la zona afectada\n3. Aplica hielo envuelto en paño (no directo)\n4. Busca atención médica inmediata\n\n¿Hay deformidad visible? ¿La persona puede mover la extremidad?';
-    }
-    
-    if (message.includes('ahog') || message.includes('atragant')) {
-      return 'Para ahogamiento/atragantamiento:\n\n1. Si la persona puede toser, anímala a seguir tosiendo\n2. Si no puede toser o respirar:\n   - Párate detrás de la persona\n   - Abraza por la cintura\n   - Pon puño debajo del esternón\n   - Empuja hacia adentro y arriba firmemente\n\n¿La persona puede hablar o toser?';
-    }
-    
-    if (message.includes('convuls') || message.includes('epilep') || message.includes('ataqu')) {
-      return 'Durante una convulsión:\n\n1. Mantén la calma y mide el tiempo\n2. Protege la cabeza con algo suave\n3. NO pongas nada en la boca\n4. Gira a la persona de lado si es posible\n5. Despeja el área de objetos peligrosos\n\n¿Cuánto tiempo lleva la convulsión? ¿Es la primera vez?';
-    }
-    
-    if (message.includes('dolor pecho') || message.includes('corazón') || message.includes('infarto')) {
-      return '⚠️ POSIBLE EMERGENCIA CARDÍACA:\n\n1. Llama al 911 INMEDIATAMENTE\n2. Si tiene aspirina, que mastique una (si no es alérgico)\n3. Siéntalo cómodamente\n4. Afloja ropa ajustada\n5. Prepárate para RCP si pierde consciencia\n\n¿Tiene dolor en el pecho, brazo o mandíbula? ¿Dificultad para respirar?';
-    }
-    
-    // Default response
-    return '¿Puedes describir mejor la situación? Por ejemplo:\n\n• ¿La persona está consciente?\n• ¿Hay sangrado visible?\n• ¿Tiene dolor?\n• ¿Puede hablar o moverse?\n\nMientras más detalles me des, mejor podré ayudarte. En caso de emergencia grave, llama al 911 inmediatamente.';
+    return 'Entendido. Por favor, mantén la calma. Describe:\n\n• ¿La persona está consciente?\n• ¿Respira con dificultad?\n\nEstoy analizando tu respuesta...';
   };
 
   const sendMessage = async () => {
@@ -92,162 +124,200 @@ const ChatScreen = () => {
     setInputValue('');
     setIsTyping(true);
 
-    // Simulate AI thinking time
     setTimeout(() => {
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        content: getAIResponse(inputValue),
+        content: getAIResponse(userMessage.content),
         sender: 'ai',
         timestamp: new Date()
       };
       
       setMessages(prev => [...prev, aiResponse]);
       setIsTyping(false);
-    }, 1000 + Math.random() * 1000);
+      
+      // Leer la respuesta de la IA en voz alta
+      speak(aiResponse.content);
+    }, 1500);
   };
 
-  const renderMessage = ({ item: message }: { item: Message }) => (
-    <View 
-      className={`flex ${message.sender === 'user' ? 'items-end' : 'items-start'} mb-4`}
-    >
-      <View className={`flex ${message.sender === 'user' ? 'flex-row-reverse' : 'flex-row'} items-start gap-2 max-w-[80%]`}>
-        <View className={`p-2 rounded-full ${
-          message.sender === 'user' 
-            ? 'bg-blue-500' 
-            : 'bg-gray-600'
-        }`}>
-          {message.sender === 'user' ? (
-            <User size={16} color="white" />
-          ) : (
-            <Bot size={16} color="white" />
-          )}
-        </View>
-        
-        <View className={`p-3 rounded-2xl ${
-          message.sender === 'user'
-            ? 'bg-blue-500'
-            : 'bg-gray-200'
-        }`}>
-          <Text className={`text-sm leading-relaxed ${
-            message.sender === 'user' ? 'text-white' : 'text-gray-900'
+  const renderMessage = ({ item: message }: { item: Message }) => {
+    const isUser = message.sender === 'user';
+    return (
+      <View className={`flex ${isUser ? 'items-end' : 'items-start'} mb-6 px-2`}>
+        <View className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-2 max-w-[85%]`}>
+          
+          {/* Avatar Pequeño */}
+          <View className={`w-8 h-8 rounded-full items-center justify-center mb-1 shadow-sm ${
+            isUser ? 'bg-blue-600' : 'bg-white border border-blue-100'
           }`}>
-            {message.content}
-          </Text>
-          <Text className={`text-xs mt-2 ${
-            message.sender === 'user'
-              ? 'text-blue-100'
-              : 'text-gray-500'
+            {isUser ? <User size={14} color="white" /> : <Bot size={16} color="#2563EB" />}
+          </View>
+          
+          {/* Burbuja de Chat */}
+          <View className={`p-4 rounded-2xl shadow-sm ${
+            isUser 
+              ? 'bg-blue-600 rounded-br-none' 
+              : 'bg-white border border-slate-100 rounded-bl-none'
           }`}>
-            {message.timestamp.toLocaleTimeString('es-ES', { 
-              hour: '2-digit', 
-              minute: '2-digit' 
-            })}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderTypingIndicator = () => (
-    <View className="flex items-start mb-4">
-      <View className="flex flex-row items-center gap-2">
-        <View className="bg-gray-600 p-2 rounded-full">
-          <Bot size={16} color="white" />
-        </View>
-        <View className="bg-gray-200 p-3 rounded-2xl">
-          <View className="flex flex-row gap-1">
-            <View className="w-2 h-2 bg-gray-500 rounded-full" />
-            <View className="w-2 h-2 bg-gray-500 rounded-full" />
-            <View className="w-2 h-2 bg-gray-500 rounded-full" />
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  return (
-    <KeyboardAvoidingView 
-      className="flex-1 bg-background"
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 50}
-    >
-      {/* Header */}
-      <View className="bg-primary p-4 flex-row items-center justify-between">
-        <View className="flex-row items-center gap-3">
-          <View className="bg-primary-foreground/20 p-2 rounded-full">
-            <Bot size={20} color="white" />
-          </View>
-          <View>
-            <Text className="font-semibold text-primary-foreground">Asistente FirstAId</Text>
-            <Text className="text-sm text-primary-foreground/80">
-              {isTyping ? 'Escribiendo...' : 'Disponible 24/7'}
+            <Text className={`text-base leading-6 ${
+              isUser ? 'text-white font-medium' : 'text-slate-700'
+            }`}>
+              {message.content}
+            </Text>
+            <Text className={`text-[10px] mt-1 text-right ${
+              isUser ? 'text-blue-200' : 'text-slate-400'
+            }`}>
+              {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
         </View>
+      </View>
+    );
+  };
+
+  // Calcular el estado del asistente
+  const getAssistantStatus = () => {
+    if (isTyping) return 'Analizando...';
+    if (isSpeaking) return 'Hablando...';
+    return 'En línea';
+  };
+
+  return (
+    <KeyboardAvoidingView 
+      className="flex-1 bg-slate-50" // Fondo general suave (gris muy claro)
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* Header Estilizado */}
+      <View className="bg-white pt-12 pb-4 px-4 flex-row items-center justify-between border-b border-slate-200 shadow-sm z-10">
+        <View className="flex-row items-center gap-3">
+          <View className="bg-blue-50 p-2.5 rounded-xl">
+            <Bot size={24} className="text-blue-600" color="#2563EB" />
+          </View>
+          <View>
+            <Text className="font-bold text-lg text-slate-800">FirstAId IA</Text>
+            <View className="flex-row items-center gap-1">
+              <View className={`w-2 h-2 rounded-full ${isTyping ? 'bg-blue-500 animate-pulse' : 'bg-green-500'}`} />
+              <Text className="text-xs text-slate-500 font-medium">
+                {getAssistantStatus()}
+              </Text>
+            </View>
+          </View>
+        </View>
         
-        <Button 
-          variant="secondary" 
-          size="sm"
-          className="bg-red-600 flex-row items-center"
-        >
-          <Phone size={16} color="white" />
-          <Text className="ml-1 text-white font-medium">911</Text>
-        </Button>
+        <View className="flex-row items-center gap-2">
+          {/* Botón TTS Toggle */}
+          <Button 
+            variant="ghost"
+            size="icon"
+            onPress={() => {
+              setTtsEnabled(!ttsEnabled);
+              if (isSpeaking) {
+                stopSpeaking();
+              }
+            }}
+            className={`w-10 h-10 rounded-full ${ttsEnabled ? 'bg-blue-50' : 'bg-slate-100'}`}
+          >
+            {ttsEnabled ? (
+              <Volume2 size={20} color="#2563EB" />
+            ) : (
+              <VolumeX size={20} color="#64748B" />
+            )}
+          </Button>
+
+          <Button 
+            variant="destructive" 
+            size="sm"
+            className="bg-red-500 hover:bg-red-600 rounded-full px-4 shadow-sm flex-row gap-2"
+          >
+            <Phone size={16} color="white" fill="white" />
+            <Text className="text-white font-bold ml-1">SOS 911</Text>
+          </Button>
+        </View>
       </View>
 
-      {/* Messages */}
+      {/* Área de Mensajes */}
       <FlatList
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 16 }}
-        ListFooterComponent={isTyping ? renderTypingIndicator : null}
-        onContentSizeChange={scrollToBottom}
-        onLayout={scrollToBottom}
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        showsVerticalScrollIndicator={false}
       />
 
-      {/* Input */}
-      <View className="border-t border-border p-4">
-        <View className="flex-row gap-2 mb-2">
-          <View className="flex-1">
-            <Input
-              value={inputValue}
-              onChangeText={setInputValue}
-              placeholder="Describe la emergencia..."
-              editable={!isTyping}
-              onSubmitEditing={sendMessage}
-              returnKeyType="send"
-            />
-          </View>
-          
-          <Button 
-            onPress={sendMessage}
-            disabled={!inputValue.trim() || isTyping}
-            className="bg-primary items-center justify-center w-12"
-          >
-            <Send size={20} color="white" />
-          </Button>
+      {/* Sugerencias Rápidas (Chips) */}
+      {!isTyping && (
+        <View className="pl-4 py-3" style={{ backgroundColor: 'transparent' }}>
+           <FlatList 
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            data={['Desmayo', 'Sangrado', 'Quemadura', 'Fractura', 'RCP']}
+            keyExtractor={(item) => item}
+            renderItem={({item}) => (
+              <TouchableOpacity
+                onPress={() => setInputValue(item)}
+                className="mr-2 bg-white border border-blue-100 px-5 py-2.5 rounded-full shadow-sm"
+              >
+                <Text className="text-blue-600 text-sm font-semibold">{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
         </View>
+      )}
+
+      {/* Input Area */}
+      <View className="bg-white px-4 py-3 border-t border-slate-100 flex-row items-end gap-2 pb-8">
         
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          className="flex-row gap-2"
+        {/* Botón de Micrófono */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onPress={toggleRecording}
+          className={`h-12 w-12 rounded-full ${
+            isRecording ? 'bg-red-50' : 'bg-slate-100'
+          }`}
         >
-          {['Desmayo', 'Sangrado', 'Quemadura', 'Fractura', 'Ahogamiento'].map((quickOption) => (
-            <Button
-              key={quickOption}
-              size="sm"
-              className="mr-2 bg-gray-200 p-3 rounded-2xl"
-              onPress={() => setInputValue(quickOption)}
-              disabled={isTyping}
-            >
-              <Text className="text-xs text-gray-900">{quickOption}</Text>
-            </Button>
-          ))}
-        </ScrollView>
+          {isRecording ? (
+            <X size={22} className="text-red-500" color="#EF4444" />
+          ) : (
+            <Mic size={22} className="text-slate-600" color="#475569" />
+          )}
+        </Button>
+
+        {/* Campo de Texto */}
+        <Input
+          value={inputValue}
+          onChangeText={setInputValue}
+          placeholder={isRecording ? "Escuchando..." : "Describe la emergencia..."}
+          placeholderTextColor="#94A3B8"
+          editable={!isTyping && !isRecording}
+          onSubmitEditing={sendMessage}
+          containerClassName="flex-1 bg-slate-100 rounded-3xl px-4 border-0"
+          className="text-slate-700 text-base"
+        />
+        
+        {/* Botón Enviar */}
+        <Button 
+          onPress={sendMessage}
+          disabled={!inputValue.trim() || isTyping}
+          className={`h-12 w-12 rounded-full items-center justify-center ${
+            inputValue.trim() ? 'bg-blue-600 shadow-lg shadow-blue-200' : 'bg-slate-200'
+          }`}
+        >
+          <Send size={20} color={inputValue.trim() ? "white" : "#94A3B8"} />
+        </Button>
       </View>
+
+      {/* Overlay visual para cuando graba (Opcional) */}
+      {isRecording && (
+        <View className="absolute bottom-24 left-0 right-0 items-center justify-center">
+          <View className="bg-red-500 px-4 py-2 rounded-full shadow-lg flex-row items-center gap-2 animate-pulse">
+            <View className="w-2 h-2 bg-white rounded-full" />
+            <Text className="text-white font-bold text-xs">GRABANDO AUDIO...</Text>
+          </View>
+        </View>
+      )}
+
     </KeyboardAvoidingView>
   );
 };

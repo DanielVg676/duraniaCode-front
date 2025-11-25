@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/Badge';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/input';
+import { cn } from '@/lib/utils';
 import {
     Activity,
     AlertTriangle,
@@ -271,9 +272,11 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
                             <Text className="font-semibold text-foreground text-sm leading-tight flex-1">
                               {guide.title}
                             </Text>
-                            <Badge className={`${getUrgencyColor(guide.urgency)} text-xs`}>
-                              {getUrgencyLabel(guide.urgency)}
-                            </Badge>
+                            <View className={cn("px-2.5 py-0.5 rounded-full", getUrgencyColor(guide.urgency))}>
+                              <Text className="text-xs font-bold">
+                                {getUrgencyLabel(guide.urgency)}
+                              </Text>
+                            </View>
                           </View>
                           
                           <Text className="text-muted-foreground text-xs mb-3 leading-relaxed">
@@ -282,12 +285,12 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
                           
                           <View className="flex-row flex-wrap gap-1">
                             {guide.tags.slice(0, 3).map((tag) => (
-                              <Badge key={tag} variant="secondary" className="text-xs mr-1 mb-1">
+                              <Badge key={tag} variant="secondary" className="mr-1 mb-1">
                                 {tag}
                               </Badge>
                             ))}
                             {guide.tags.length > 3 && (
-                              <Badge variant="secondary" className="text-xs">
+                              <Badge variant="secondary">
                                 +{guide.tags.length - 3}
                               </Badge>
                             )}
