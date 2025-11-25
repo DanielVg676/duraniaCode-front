@@ -7,6 +7,7 @@ import React from "react";
 // IMPORTA las pantallas
 import ChatScreen from "../screens/ChatScreen";
 import ChecklistScreen from "../screens/ChecklistScreen";
+import GuideDetailScreen from "../screens/GuideDetailScreen";
 import HomeScreen from "../screens/HomeScreen";
 import KitScreen from "../screens/KitScreen";
 import SearchScreen from "../screens/SearchScreen";
@@ -23,6 +24,7 @@ export type RootStackParamList = {
   MainTabs: undefined;
   Checklist: undefined;
   Kit: undefined;
+  GuideDetail: { guideId: string };
 };
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -105,6 +107,17 @@ const MainNavigator = () => {
         component={KitScreen}
         options={{ title: "Kit de Emergencia" }}
       />
+      <Stack.Screen
+        name="GuideDetail"
+        options={{ title: "Guía de Emergencia" }}
+      >
+        {({ route, navigation }) => (
+          <GuideDetailScreen
+            guideId={route.params.guideId}
+            onBack={() => navigation.goBack()}
+          />
+        )}
+      </Stack.Screen>
     </Stack.Navigator>
   );
 };

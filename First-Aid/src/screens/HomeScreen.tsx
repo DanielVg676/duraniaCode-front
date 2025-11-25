@@ -98,6 +98,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                   <View key={category.id} className="w-1/2 px-1 mb-3">
                     <Card
                       className="transition-shadow"
+                      onPress={() => navigation?.navigate("GuideDetail", { guideId: category.id })}
                     >
                       <CardContent className="p-4 items-center">
                         <Icon
