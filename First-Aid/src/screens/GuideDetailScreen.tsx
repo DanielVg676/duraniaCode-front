@@ -189,108 +189,184 @@ const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
     }
   };
 
+  const getUrgencyLabel = (urgency: string) => {
+    switch (urgency) {
+      case 'critical': return '🚨 CRÍTICO';
+      case 'high': return '⚠️ ALTO';
+      default: return '🔔 MEDIO';
+    }
+  };
+
   return (
-    <View className="flex-1 bg-background">
-      {/* Header */}
-      <View className="bg-card border-b border-border p-4">
-        <View className="flex-row items-center gap-3 mb-3">
-          <Button variant="ghost" size="sm" onPress={onBack}>
-            <ArrowLeft size={16} color="#6b7280" />
-          </Button>
-          <View className="flex-1">
-            <Text className="text-lg font-bold text-foreground">{currentGuide.title}</Text>
-            <View className="flex-row items-center gap-2 mt-1">
-              <Badge className={getUrgencyColor(currentGuide.urgency)}>
-                {currentGuide.urgency === 'critical' ? 'CRÍTICO' : 
-                 currentGuide.urgency === 'high' ? 'ALTO' : 'MEDIO'}
-              </Badge>
-              <View className="flex-row items-center">
-                <Clock size={12} color="#6b7280" style={{ marginRight: 4 }} />
-                <Text className="text-sm text-muted-foreground">{currentGuide.duration}</Text>
-              </View>
+    <View className="flex-1 bg-slate-50">
+      {/* Header Moderno */}
+      <View className="bg-white border-b border-slate-100 shadow-sm">
+        <View className="pt-4 pb-4 px-5">
+          <View className="flex-row items-center mb-4">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onPress={onBack}
+              className="mr-2 -ml-2"
+            >
+              <ArrowLeft size={20} color="#64748B" />
+            </Button>
+            <View className="flex-1">
+              <Text className="text-2xl font-bold text-slate-800" numberOfLines={2}>
+                {currentGuide.title}
+              </Text>
             </View>
           </View>
+          
+          <View className="flex-row items-center mb-4" style={{ gap: 8 }}>
+            <Badge className={`${getUrgencyColor(currentGuide.urgency)} px-3 py-1.5 rounded-full`}>
+              <Text className="text-xs font-bold">
+                {getUrgencyLabel(currentGuide.urgency)}
+              </Text>
+            </Badge>
+            <View className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-full">
+              <Clock size={14} color="#64748B" style={{ marginRight: 4 }} />
+              <Text className="text-xs font-semibold text-slate-600">{currentGuide.duration}</Text>
+            </View>
+          </View>
+          
+          <Button 
+            className="w-full bg-red-500 h-14 rounded-2xl shadow-lg shadow-red-200 active:scale-95"
+            onPress={() => Linking.openURL('tel:911')}
+          >
+            <View className="flex-row items-center justify-center gap-3">
+              <Phone size={20} color="white" fill="white" />
+              <Text className="text-white font-bold text-base">Llamar Emergencias 911</Text>
+            </View>
+          </Button>
         </View>
-        
-        <Button 
-          className="w-full bg-red-600 flex-row items-center justify-center"
-          onPress={() => Linking.openURL('tel:911')}
-        >
-          <Phone size={16} color="white" />
-          <Text className="ml-2 text-white font-medium">Llamar Emergencias (911)</Text>
-        </Button>
       </View>
 
       {/* Guide Content */}
-      <ScrollView className="flex-1 p-4">
-        <Text className="text-muted-foreground mb-6">{currentGuide.description}</Text>
-
-        {/* Step Progress */}
-        <View className="flex-row items-center justify-between mb-4">
-          <Text className="text-sm font-medium">
-            Paso {currentStep + 1} de {currentGuide.steps.length}
-          </Text>
-          <View className="flex-row gap-1">
-            {currentGuide.steps.map((_, index) => (
-              <View
-                key={index}
-                className={`h-2 w-8 rounded ${
-                  index === currentStep ? 'bg-primary' : 
-                  index < currentStep ? 'bg-green-600' : 'bg-muted'
-                }`}
-              />
-            ))}
-          </View>
-        </View>
-
-        {/* Current Step */}
-        <Card className="mb-6">
-          <CardHeader>
-            <View className="flex-row items-center gap-2">
-              <View className="bg-primary rounded-full w-8 h-8 items-center justify-center">
-                <Text className="text-sm font-bold text-primary-foreground">
-                  {currentStep + 1}
-                </Text>
-              </View>
-              <Text className="text-lg font-semibold flex-1">{currentStepData.title}</Text>
-            </View>
-          </CardHeader>
-          <CardContent>
-            <Text className="text-foreground mb-4 leading-relaxed">
-              {currentStepData.content}
+      <ScrollView 
+        className="flex-1" 
+        contentContainerStyle={{ paddingBottom: 140 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="px-5 py-6">
+          {/* Descripción */}
+          <View className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6">
+            <Text className="text-slate-700 leading-relaxed text-sm">
+              {currentGuide.description}
             </Text>
+          </View>
+
+          {/* Step Progress */}
+          <View className="mb-6">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-sm font-bold text-slate-800">
+                Paso {currentStep + 1} de {currentGuide.steps.length}
+              </Text>
+              <Text className="text-xs text-slate-500 font-medium">
+                {Math.round(((currentStep + 1) / currentGuide.steps.length) * 100)}% Completado
+              </Text>
+            </View>
             
-            {currentStepData.warning && (
-              <View className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex-row items-start gap-2">
-                <AlertTriangle size={16} color="#f97316" style={{ marginTop: 2 }} />
-                <Text className="text-sm text-orange-800 flex-1">
-                  <Text className="font-bold">Importante:</Text> {currentStepData.warning}
+            {/* Barra de progreso */}
+            <View className="h-3 bg-slate-200 rounded-full overflow-hidden">
+              <View 
+                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
+                style={{ 
+                  width: `${((currentStep + 1) / currentGuide.steps.length) * 100}%` 
+                }}
+              />
+            </View>
+            
+            {/* Indicadores de pasos */}
+            <View className="flex-row justify-between mt-3" style={{ gap: 4 }}>
+              {currentGuide.steps.map((step, index) => {
+                let stepColor = 'bg-slate-300';
+                if (index === currentStep) {
+                  stepColor = 'bg-blue-600';
+                } else if (index < currentStep) {
+                  stepColor = 'bg-green-500';
+                }
+                
+                return (
+                  <View
+                    key={`step-${index}-${step.title}`}
+                    className={`flex-1 h-1.5 rounded-full ${stepColor}`}
+                  />
+                );
+              })}
+            </View>
+          </View>
+
+          {/* Current Step Card */}
+          <Card className="mb-6 bg-white rounded-3xl shadow-lg border-0 overflow-hidden">
+            <CardHeader className="pb-3 pt-6 px-6">
+              <View className="flex-row items-center mb-2" style={{ gap: 12 }}>
+                <View className="bg-blue-600 rounded-2xl w-12 h-12 items-center justify-center shadow-md shadow-blue-300">
+                  <Text className="text-xl font-bold text-white">
+                    {currentStep + 1}
+                  </Text>
+                </View>
+                <Text className="text-xl font-bold text-slate-800 flex-1" numberOfLines={2}>
+                  {currentStepData.title}
                 </Text>
               </View>
-            )}
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent className="px-6 pb-6">
+              <Text className="text-slate-700 mb-4 leading-relaxed text-base">
+                {currentStepData.content}
+              </Text>
+              
+              {currentStepData.warning && (
+                <View className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 flex-row items-start" style={{ gap: 10 }}>
+                  <View className="bg-orange-100 p-2 rounded-xl">
+                    <AlertTriangle size={20} color="#f97316" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-xs font-bold text-orange-800 mb-1">
+                      ⚠️ IMPORTANTE
+                    </Text>
+                    <Text className="text-sm text-orange-900 leading-relaxed">
+                      {currentStepData.warning}
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Navigation Buttons */}
-        <View className="flex-row gap-3 mb-6">
-          <Button
-            variant="outline"
-            className="flex-1 flex-row items-center justify-center"
-            onPress={() => setCurrentStep(Math.max(0, currentStep - 1))}
-            disabled={isFirstStep}
-          >
-            <StepLeft size={16} color={isFirstStep ? "#9ca3af" : "#3b82f6"} />
-            <Text className={`ml-2 ${isFirstStep ? 'text-muted-foreground' : ''}`}>Anterior</Text>
-          </Button>
-          
-          <Button
-            className="flex-1 flex-row items-center justify-center"
-            onPress={() => setCurrentStep(Math.min(currentGuide.steps.length - 1, currentStep + 1))}
-            disabled={isLastStep}
-          >
-            <Text className="text-white">{isLastStep ? 'Completado' : 'Siguiente'}</Text>
-            {!isLastStep && <ArrowRight size={16} color="white" style={{ marginLeft: 8 }} />}
-          </Button>
+          {/* Navigation Buttons */}
+          <View className="flex-row mb-6" style={{ gap: 12 }}>
+            <Button
+              variant="outline"
+              className={`flex-1 h-14 rounded-2xl border-2 ${
+                isFirstStep ? 'bg-slate-100 border-slate-200' : 'bg-white border-slate-300'
+              }`}
+              onPress={() => setCurrentStep(Math.max(0, currentStep - 1))}
+              disabled={isFirstStep}
+            >
+              <View className="flex-row items-center justify-center gap-2">
+                <StepLeft size={18} color={isFirstStep ? "#CBD5E1" : "#64748B"} />
+                <Text className={`font-bold ${isFirstStep ? 'text-slate-400' : 'text-slate-700'}`}>
+                  Anterior
+                </Text>
+              </View>
+            </Button>
+            
+            <Button
+              className={`flex-1 h-14 rounded-2xl shadow-lg ${
+                isLastStep ? 'bg-green-500 shadow-green-200' : 'bg-blue-600 shadow-blue-200'
+              }`}
+              onPress={() => setCurrentStep(Math.min(currentGuide.steps.length - 1, currentStep + 1))}
+              disabled={isLastStep}
+            >
+              <View className="flex-row items-center justify-center gap-2">
+                <Text className="text-white font-bold text-base">
+                  {isLastStep ? '✓ Completado' : 'Siguiente'}
+                </Text>
+                {!isLastStep && <ArrowRight size={18} color="white" />}
+              </View>
+            </Button>
+          </View>
         </View>
       </ScrollView>
     </View>

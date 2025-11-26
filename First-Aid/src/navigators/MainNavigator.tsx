@@ -73,25 +73,25 @@ const TabNavigator = () => {
 
 const MainNavigator = () => {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
       <Stack.Screen
         name="MainTabs"
         component={TabNavigator}
-        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="Checklist"
         component={ChecklistScreen}
-        options={{ title: "Checklist de Preparación" }}
       />
       <Stack.Screen
         name="Kit"
         component={KitScreen}
-        options={{ title: "Kit de Emergencia" }}
       />
       <Stack.Screen
         name="GuideDetail"
-        options={{ title: "Guía de Emergencia" }}
       >
         {({ route, navigation }) => (
           <GuideDetailScreen

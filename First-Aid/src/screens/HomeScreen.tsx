@@ -1,200 +1,326 @@
 // src/screens/HomeScreen.tsx
 import ContactManager from "@/components/ContactManager";
 import SosButtonNative from "@/components/SosButtonNative";
-import { Card, CardContent } from "@/components/ui/Card";
 import {
   Activity,
+  Bot,
   Droplet,
   Flame,
   Heart,
   PackageCheck,
+  Phone,
   Shield,
+  Zap,
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import {
+  Dimensions,
+  FlatList,
   Image,
   ScrollView,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
+
 const LifeAidLogo = require("@/assets/lifeaid.png");
+const screenWidth = Dimensions.get("window").width;
+const CAROUSEL_ITEM_WIDTH = screenWidth - 60;
 
 interface HomeScreenProps {
   navigation?: any;
 }
 
+interface CarouselItem {
+  id: string;
+  title: string;
+  renderContent: () => React.ReactElement;
+}
+
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [emergencyContacts, setEmergencyContacts] = useState<string[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+
+  const slides: CarouselItem[] = [
+    {
+      id: "sos",
+      title: "Botón de Emergencia",
+      renderContent: () => (
+        <View className="bg-white rounded-3xl shadow-lg p-6 items-center justify-center" style={{ height: 280 }}>
+          <Text className="text-xl font-bold text-slate-800 mb-4">Botón de Emergencia</Text>
+          <SosButtonNative contacts={emergencyContacts} />
+        </View>
+      ),
+    },
+    {
+      id: "contacts",
+      title: "Contactos",
+      renderContent: () => (
+        <View className="bg-white rounded-3xl shadow-lg p-4" style={{ height: 280 }}>
+          <ContactManager onContactsChange={setEmergencyContacts} />
+        </View>
+      ),
+    },
+    {
+      id: "ai",
+      title: "Asistente IA",
+      renderContent: () => (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => navigation?.navigate("ChatIA")}
+          className="bg-blue-600 rounded-3xl shadow-lg overflow-hidden"
+          style={{ height: 280 }}
+        >
+          <View className="flex-1 items-center justify-center p-6">
+            <View className="bg-blue-500 p-6 rounded-3xl mb-4">
+              <Bot size={48} color="white" />
+            </View>
+            <Text className="text-white font-bold text-2xl mb-2">Asistente IA</Text>
+            <Text className="text-blue-100 text-center text-base font-medium">
+              Pregunta sobre tu emergencia y obtén ayuda inmediata
+            </Text>
+          </View>
+        </TouchableOpacity>
+      ),
+    },
+  ];
+
+  const renderCarouselItem = ({ item, index }: { item: CarouselItem; index: number }) => {
+    return (
+      <View 
+        style={{ 
+          width: CAROUSEL_ITEM_WIDTH,
+          marginHorizontal: 5,
+        }}
+      >
+        {item.renderContent()}
+      </View>
+    );
+  };
+
+  const onViewableItemsChanged = useRef(({ viewableItems }: any) => {
+    if (viewableItems.length > 0) {
+      setCurrentIndex(viewableItems[0].index ?? 0);
+    }
+  }).current;
 
   const emergencyCategories = [
     {
       id: "cpr",
       title: "RCP",
-      description: "Reanimación Cardiopulmonar",
       icon: Heart,
-      color: "#ef4444", // text-emergency (ajusta al color de tu tema)
+      color: "#EF4444",
+      bgColor: "#FEE2E2",
     },
     {
       id: "bleeding",
       title: "Hemorragias",
-      description: "Control de sangrado",
       icon: Droplet,
-      color: "#ef4444",
+      color: "#DC2626",
+      bgColor: "#FEE2E2",
     },
     {
       id: "burns",
       title: "Quemaduras",
-      description: "Tratamiento de quemaduras",
       icon: Flame,
-      color: "#f97316", // text-warning
+      color: "#F97316",
+      bgColor: "#FFEDD5",
     },
     {
       id: "fractures",
       title: "Fracturas",
-      description: "Primeros auxilios para huesos",
       icon: Shield,
-      color: "#3b82f6", // text-primary
+      color: "#3B82F6",
+      bgColor: "#DBEAFE",
     },
     {
       id: "choking",
       title: "Ahogamiento",
-      description: "Maniobra de Heimlich",
       icon: Activity,
-      color: "#ef4444",
+      color: "#EF4444",
+      bgColor: "#FEE2E2",
     },
     {
       id: "seizures",
       title: "Convulsiones",
-      description: "Manejo de crisis epilépticas",
-      icon: Activity,
-      color: "#f97316",
+      icon: Zap,
+      color: "#F59E0B",
+      bgColor: "#FEF3C7",
     },
   ];
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-slate-50">
       <ScrollView
-        className="flex-1 pb-20"
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
-        {/* Header */}
-        <View className="bg-primary items-center justify-center px-6">
-          <Image
-            source={LifeAidLogo}
-            resizeMode="contain"
-            className="h-60 w-60"
-          />
+        {/* Header con Logo - REDUCIDO */}
+        <View className="bg-blue-600 pt-8 pb-6 px-6 rounded-b-[32px] shadow-sm mb-6">
+          <View className="items-center mb-3">
+            <Image
+              source={LifeAidLogo}
+              resizeMode="contain"
+              style={{ width: 120, height: 120 }}
+            />
+          </View>
+          <Text className="text-white text-center text-xl font-bold mb-1">
+            FirstAId
+          </Text>
+          <Text className="text-blue-100 text-center text-xs font-medium">
+            Tu asistente de primeros auxilios
+          </Text>
         </View>
 
-        {/* Content */}
-        <View className="p-4">
-          {/* Emergency Alert Card */}
-          <Card className="mb-6 bg-red-50 border-2 border-red-500">
-            <CardContent className="p-6">
-              <Text className="text-3xl font-bold text-center text-red-600 mb-6">
-                ¿Estás en peligro?
-              </Text>
-              
-              {/* SOS Button */}
-              <View className="items-center mb-6">
-                <SosButtonNative 
-                  contacts={emergencyContacts}
-                  style={{ marginBottom: 0 }}
-                />
+        <View className="px-5">
+          {/* Carousel con SOS, Contacts y AI */}
+          <View className="mb-8">
+            <View className="flex-row items-center mb-4">
+              <View className="bg-red-50 p-2 rounded-xl mr-3">
+                <Phone size={20} color="#EF4444" />
               </View>
-
-              {/* Contact Manager */}
-              <ContactManager 
-                onContactsChange={setEmergencyContacts}
+              <Text className="text-xl font-bold text-slate-800">
+                Acciones Rápidas
+              </Text>
+            </View>
+            
+            <View>
+              <FlatList
+                ref={flatListRef}
+                data={slides}
+                renderItem={renderCarouselItem}
+                keyExtractor={(item) => item.id}
+                horizontal
+                pagingEnabled
+                showsHorizontalScrollIndicator={false}
+                snapToInterval={CAROUSEL_ITEM_WIDTH + 10}
+                decelerationRate="fast"
+                contentContainerStyle={{
+                  paddingHorizontal: (screenWidth - CAROUSEL_ITEM_WIDTH) / 2,
+                }}
+                onViewableItemsChanged={onViewableItemsChanged}
+                viewabilityConfig={{
+                  itemVisiblePercentThreshold: 50,
+                }}
               />
-            </CardContent>
-          </Card>
+              
+              {/* Indicadores de página */}
+              <View className="flex-row justify-center mt-4" style={{ gap: 8 }}>
+                {slides.map((slide, index) => (
+                  <View
+                    key={slide.id}
+                    className={`h-2 rounded-full ${
+                      index === currentIndex ? "bg-blue-600 w-8" : "bg-slate-300 w-2"
+                    }`}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
 
-          {/* Categories Grid */}
+          {/* Guías de Primeros Auxilios */}
+          <View className="mb-8">
+            <View className="flex-row items-center mb-4">
+              <View className="bg-blue-50 p-2 rounded-xl mr-3">
+                <Shield size={20} color="#2563EB" />
+              </View>
+              <Text className="text-xl font-bold text-slate-800">
+                Guías de Emergencia
+              </Text>
+            </View>
 
-          <View className="space-y-4">
-            <Text className="text-lg font-semibold text-foreground mb-2">
-              Guías de Primeros Auxilios
-            </Text>
-
-            <View className="flex-row flex-wrap -mx-1">
+            <View className="flex-row flex-wrap -mx-2">
               {emergencyCategories.map((category) => {
                 const Icon = category.icon;
                 return (
-                  <View key={category.id} className="w-1/2 px-1 mb-3">
-                    <Card
-                      className="transition-shadow"
-                      onPress={() => navigation?.navigate("GuideDetail", { guideId: category.id })}
+                  <View key={category.id} className="w-1/2 px-2 mb-4">
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      onPress={() =>
+                        navigation?.navigate("GuideDetail", {
+                          guideId: category.id,
+                        })
+                      }
+                      className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+                      style={{ elevation: 2 }}
                     >
-                      <CardContent className="p-4 items-center">
-                        <Icon
-                          size={32}
-                          color={category.color}
-                          style={{ marginBottom: 8 }}
-                        />
-                        <Text className="font-semibold text-sm mb-1 text-foreground text-center">
+                      <View className="p-5 items-center">
+                        <View
+                          className="p-4 rounded-2xl mb-3"
+                          style={{ backgroundColor: category.bgColor }}
+                        >
+                          <Icon size={32} color={category.color} />
+                        </View>
+                        <Text className="font-bold text-sm text-slate-800 text-center">
                           {category.title}
                         </Text>
-                        <Text className="text-xs text-muted-foreground text-center">
-                          {category.description}
-                        </Text>
-                      </CardContent>
-                    </Card>
+                      </View>
+                    </TouchableOpacity>
                   </View>
                 );
               })}
             </View>
           </View>
 
-          {/* Quick Preparation */}
-          <View className="mt-8 space-y-3">
-            <Text className="text-lg font-semibold mb-4">
-              Preparación
-            </Text>
+          {/* Preparación */}
+          <View className="mb-8">
+            <View className="flex-row items-center mb-4">
+              <View className="bg-green-50 p-2 rounded-xl mr-3">
+                <PackageCheck size={20} color="#10B981" />
+              </View>
+              <Text className="text-xl font-bold text-slate-800">
+                Preparación
+              </Text>
+            </View>
 
-            {/* Kit de Emergencia */}
-            <Card
-              onPress={() => navigation?.navigate("Kit")}
-              className="transition-shadow"
-            >
-              <CardContent className="p-4 flex-row items-center">
-                <Shield
-                  size={24}
-                  color="#22c55e"
-                  style={{ marginRight: 16 }}
-                />
-                <View className="flex-1">
-                  <Text className="font-semibold text-foreground">
-                    Kit de Emergencia
-                  </Text>
-                  <Text className="text-sm text-muted-foreground">
-                    Ver contenido recomendado
-                  </Text>
+            <View style={{ gap: 12 }}>
+              {/* Kit de Emergencia */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation?.navigate("Kit")}
+                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+                style={{ elevation: 2 }}
+              >
+                <View className="flex-row items-center p-4">
+                  <View className="bg-green-50 p-3 rounded-2xl mr-4">
+                    <Shield size={24} color="#10B981" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-bold text-slate-800 text-base mb-1">
+                      Kit de Emergencia
+                    </Text>
+                    <Text className="text-slate-500 text-sm">
+                      Ver contenido recomendado
+                    </Text>
+                  </View>
+                  <Text className="text-slate-400 text-xl">›</Text>
                 </View>
-              </CardContent>
-            </Card>
+              </TouchableOpacity>
 
-            {/* Checklist de Preparación */}
-            <Card
-              onPress={() => navigation?.navigate("Checklist")}
-              className="transition-shadow"
-            >
-              <CardContent className="p-4 flex-row items-center">
-                <PackageCheck
-                  size={24}
-                  color="#3b82f6"
-                  style={{ marginRight: 16 }}
-                />
-                <View className="flex-1">
-                  <Text className="font-semibold text-foreground">
-                    Checklist de Preparación
-                  </Text>
-                  <Text className="text-sm text-muted-foreground">
-                    Marca lo que ya tienes listo
-                  </Text>
+              {/* Checklist */}
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => navigation?.navigate("Checklist")}
+                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+                style={{ elevation: 2 }}
+              >
+                <View className="flex-row items-center p-4">
+                  <View className="bg-blue-50 p-3 rounded-2xl mr-4">
+                    <PackageCheck size={24} color="#3B82F6" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="font-bold text-slate-800 text-base mb-1">
+                      Checklist de Preparación
+                    </Text>
+                    <Text className="text-slate-500 text-sm">
+                      Marca lo que ya tienes listo
+                    </Text>
+                  </View>
+                  <Text className="text-slate-400 text-xl">›</Text>
                 </View>
-              </CardContent>
-            </Card>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </ScrollView>

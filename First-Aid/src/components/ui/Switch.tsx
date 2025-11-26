@@ -1,9 +1,6 @@
 import { cn } from "@/lib/utils";
 import * as React from "react";
-import {
-    Pressable,
-    View,
-} from "react-native";
+import { Pressable, View } from "react-native";
 
 export interface SwitchProps {
   checked?: boolean;
@@ -19,8 +16,12 @@ const Switch = React.forwardRef<View, SwitchProps>(
       onPress={() => !disabled && onCheckedChange?.(!checked)}
       disabled={disabled}
       className={cn(
-        "inline-flex h-6 w-11 shrink-0 items-center rounded-full border-2 border-transparent transition-colors",
-        checked ? "bg-primary" : "bg-input",
+        // LAYOUT & TAMAÑO
+        "flex-row h-8 w-14 shrink-0 items-center rounded-full border-2 border-transparent",
+        // POSICIONAMIENTO (Esto arregla que se mueva a donde no debe)
+        "self-start", 
+        // COLORES & ESTADOS (Minimalista Azulado)
+        checked ? "bg-blue-600" : "bg-slate-200",
         disabled && "opacity-50",
         className
       )}
@@ -28,8 +29,10 @@ const Switch = React.forwardRef<View, SwitchProps>(
     >
       <View
         className={cn(
-          "block h-5 w-5 rounded-full bg-background shadow-lg transition-transform",
-          checked ? "translate-x-5" : "translate-x-0"
+          // THUMB (El círculo)
+          "h-7 w-7 rounded-full bg-white shadow-sm shadow-slate-400 elevation-2",
+          // ANIMACIÓN / TRANSICIÓN (Simulada con lógica de renderizado)
+          checked ? "translate-x-6" : "translate-x-0"
         )}
       />
     </Pressable>
@@ -38,4 +41,3 @@ const Switch = React.forwardRef<View, SwitchProps>(
 Switch.displayName = "Switch";
 
 export { Switch };
-
