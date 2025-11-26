@@ -198,7 +198,7 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
       </View>
 
       {/* Results */}
-      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 20 }}>
+      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 120 }}>
         {searchTerm === '' ? (
           <View className="space-y-4">
             <View className="items-center py-8">

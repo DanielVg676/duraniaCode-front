@@ -1,7 +1,7 @@
 // src/screens/HomeScreen.tsx
-import { Card, CardContent } from "@/components/ui/Card";
 import ContactManager from "@/components/ContactManager";
 import SosButtonNative from "@/components/SosButtonNative";
+import { Card, CardContent } from "@/components/ui/Card";
 import {
   Activity,
   Droplet,
@@ -75,7 +75,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     <View className="flex-1 bg-background">
       <ScrollView
         className="flex-1 pb-20"
-        contentContainerStyle={{ paddingBottom: 40 }}
+        contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Header */}
         <View className="bg-primary items-center justify-center px-6">

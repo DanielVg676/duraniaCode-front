@@ -1,28 +1,28 @@
-// src/components/ui/Button.tsx
 import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import React from "react";
-import { Pressable, PressableProps, Text } from "react-native";
+import { ActivityIndicator, Pressable, PressableProps, Text } from "react-native";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none",
+  "flex-row items-center justify-center gap-2 rounded-full transition-all", 
+  // 'rounded-full' es clave para el look amigable
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground",
-        destructive: "bg-destructive text-destructive-foreground",
+        default: "bg-blue-600 active:bg-blue-700 shadow-sm shadow-blue-200",
+        destructive: "bg-red-500 active:bg-red-600 shadow-sm shadow-red-200",
         outline:
-          "border border-input bg-background text-foreground",
+          "border border-slate-100 bg-white active:bg-slate-50",
         secondary:
-          "bg-secondary text-secondary-foreground",
-        ghost: "bg-transparent",
-        link: "bg-transparent text-primary underline",
+          "bg-blue-50 active:bg-blue-100",
+        ghost: "bg-transparent active:bg-slate-100",
+        link: "text-blue-600 underline-offset-4",
       },
       size: {
-        default: "h-10 px-4",
-        sm: "h-9 px-3",
-        lg: "h-11 px-8",
-        icon: "h-10 w-10",
+        default: "h-12 px-6 py-2",
+        sm: "h-9 px-4 rounded-full",
+        lg: "h-14 px-8 rounded-full",
+        icon: "h-12 w-12 p-0", // Cuadrado perfecto (o circulo con rounded-full)
       },
     },
     defaultVariants: {
@@ -37,28 +37,49 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   className?: string;
   children?: React.ReactNode;
+  isLoading?: boolean; // Nuevo prop para loading
+  textClassName?: string; // Para personalizar el texto específicamente
 }
 
-const ButtonComponent = React.forwardRef<
-  React.ElementRef<typeof Pressable>,
-  ButtonProps
->(({ className, variant, size, children, ...props }, ref) => {
-  return (
-    <Pressable
-      ref={ref}
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    >
-      {/* IMPORTANTE: en móvil, el texto debe ir en <Text> */}
-      {typeof children === "string" ? (
-        <Text className="text-sm font-medium text-inherit">{children}</Text>
-      ) : (
-        children
-      )}
-    </Pressable>
-  );
-});
+const Button = React.forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
+  ({ className, variant, size, children, isLoading, textClassName, disabled, ...props }, ref) => {
+    
+    // Determinamos el color del texto/spinner basado en la variante
+    const isSolid = variant === 'default' || variant === 'destructive';
+    const textColorClass = isSolid ? 'text-white' : variant === 'link' ? 'text-blue-600' : 'text-slate-700';
+    const spinnerColor = isSolid ? 'white' : '#2563EB'; // Azul para variantes claras
 
-ButtonComponent.displayName = "Button";
+    return (
+      <Pressable
+        ref={ref}
+        disabled={disabled || isLoading}
+        className={cn(
+          buttonVariants({ variant, size, className }),
+          (disabled || isLoading) && "opacity-50",
+          "active:scale-95" // Efecto de pulsación sutil
+        )}
+        {...props}
+      >
+        {isLoading ? (
+          <ActivityIndicator size="small" color={spinnerColor} />
+        ) : (
+          <>
+            {/* Si pasas componentes (iconos), se renderizan tal cual */}
+            {typeof children === "string" ? (
+              <Text className={cn("text-base font-semibold", textColorClass, textClassName)}>
+                {children}
+              </Text>
+            ) : (
+              children
+            )}
+          </>
+        )}
+      </Pressable>
+    );
+  }
+);
 
-export const Button = ButtonComponent;
+Button.displayName = "Button";
+
+export { Button, buttonVariants };
+

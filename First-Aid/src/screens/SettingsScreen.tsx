@@ -77,7 +77,7 @@ const SettingsScreen = () => {
   ];
 
   return (
-    <ScrollView className="flex-1 bg-slate-50">
+    <ScrollView className="flex-1 bg-slate-50" contentContainerStyle={{ paddingBottom: 120 }}>
       {/* Header Moderno con Gradiente Visual */}
       <View className="bg-blue-600 pt-12 pb-8 px-6">
         <View className="items-center">

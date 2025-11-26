@@ -241,7 +241,7 @@ const ChatScreen = () => {
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
         showsVerticalScrollIndicator={false}
       />
 
@@ -266,7 +266,7 @@ const ChatScreen = () => {
       )}
 
       {/* Input Area */}
-      <View className="bg-white px-4 py-3 border-t border-slate-100 flex-row items-end gap-2 pb-8">
+      <View className="bg-white px-4 py-3 border-t border-slate-100 flex-row items-end gap-2 pb-28">
         
         {/* Botón de Micrófono */}
         <Button

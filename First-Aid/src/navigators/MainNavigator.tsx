@@ -1,9 +1,10 @@
 // src/navigators/MainNavigator.tsx
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { Home, MessageCircle, Search, Settings } from "lucide-react-native";
 import React from "react";
 
+// IMPORTA el navbar personalizado
+import CustomNavBar from "../components/CustomNavBar";
 // IMPORTA las pantallas
 import ChatScreen from "../screens/ChatScreen";
 import ChecklistScreen from "../screens/ChecklistScreen";
@@ -33,36 +34,23 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const TabNavigator = () => {
   return (
     <Tab.Navigator
+      tabBar={(props) => <CustomNavBar {...props} />}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#3b82f6",
-        tabBarInactiveTintColor: "#9ca3af",
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          borderTopWidth: 1,
-          borderTopColor: "#e5e7eb",
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: "500",
-        },
       }}
     >
       <Tab.Screen
         name="Inicio"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
+          tabBarLabel: "Inicio",
         }}
       />
       <Tab.Screen
         name="Buscar"
         component={SearchScreen}
         options={{
-          tabBarIcon: ({ color, size }) => <Search size={size} color={color} />,
+          tabBarLabel: "Buscar",
         }}
       />
       <Tab.Screen
@@ -70,19 +58,13 @@ const TabNavigator = () => {
         component={ChatScreen}
         options={{
           tabBarLabel: "Chat IA",
-          tabBarIcon: ({ color, size }) => (
-            <MessageCircle size={size} color={color} />
-          ),
         }}
       />
       <Tab.Screen
         name="Config"
         component={SettingsScreen}
         options={{
-          tabBarLabel: "Config.",
-          tabBarIcon: ({ color, size }) => (
-            <Settings size={size} color={color} />
-          ),
+          tabBarLabel: "Config",
         }}
       />
     </Tab.Navigator>
