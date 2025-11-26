@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Button, FlatList, StyleSheet, Modal, TouchableOpacity, Alert, TextInput } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Modal, TouchableOpacity, Alert, TextInput } from 'react-native';
 import * as Contacts from 'expo-contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -134,7 +134,19 @@ export default function ContactManager({ onContactsChange }: Props) {
         </View>
       ))}
 
-      <Button title="Agregar Contacto de Agenda" onPress={openContactPicker} />
+      <TouchableOpacity 
+        onPress={openContactPicker}
+        style={{
+          backgroundColor: '#2563EB',
+          padding: 14,
+          borderRadius: 12,
+          alignItems: 'center',
+          marginTop: 8
+        }}
+        activeOpacity={0.8}
+      >
+        <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 14 }}>+ Agregar Contacto</Text>
+      </TouchableOpacity>
 
       <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <View style={styles.modalContainer}>
@@ -160,7 +172,19 @@ export default function ContactManager({ onContactsChange }: Props) {
               </TouchableOpacity>
             )}
           />
-          <Button title="Cancelar" color="red" onPress={() => setModalVisible(false)} />
+          <TouchableOpacity 
+            onPress={() => setModalVisible(false)}
+            style={{
+              backgroundColor: '#EF4444',
+              padding: 16,
+              borderRadius: 16,
+              alignItems: 'center',
+              marginTop: 16
+            }}
+            activeOpacity={0.8}
+          >
+            <Text style={{ color: 'white', fontWeight: 'bold', fontSize: 16 }}>Cancelar</Text>
+          </TouchableOpacity>
         </View>
       </Modal>
     </View>
@@ -168,25 +192,83 @@ export default function ContactManager({ onContactsChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { width: '100%', marginBottom: 20, padding: 10, backgroundColor: '#f0f0f0', borderRadius: 10 },
-  title: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
-  contactRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 8, padding: 10, backgroundColor: 'white', borderRadius: 5, alignItems: 'center' },
-  contactText: { fontSize: 14, flex: 1 },
-  deleteText: { color: 'red', fontWeight: 'bold', paddingHorizontal: 10, fontSize: 18 },
+  container: { 
+    width: '100%', 
+    padding: 0,
+    backgroundColor: 'transparent',
+  },
+  title: { 
+    fontSize: 16, 
+    fontWeight: 'bold', 
+    marginBottom: 12,
+    color: '#1E293B',
+    textAlign: 'center'
+  },
+  contactRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    marginBottom: 8, 
+    padding: 12, 
+    backgroundColor: '#F8FAFC', 
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    alignItems: 'center' 
+  },
+  contactText: { 
+    fontSize: 13, 
+    flex: 1,
+    color: '#475569',
+    fontWeight: '500'
+  },
+  deleteText: { 
+    color: '#EF4444', 
+    fontWeight: 'bold', 
+    paddingHorizontal: 12, 
+    fontSize: 16 
+  },
   
   // Estilos del Modal
-  modalContainer: { flex: 1, padding: 20, marginTop: 40, backgroundColor: 'white' },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', marginBottom: 15, textAlign: 'center' },
-  searchInput: {
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginBottom: 15,
-    backgroundColor: '#f9f9f9'
+  modalContainer: { 
+    flex: 1, 
+    padding: 20, 
+    paddingTop: 60, 
+    backgroundColor: '#F8FAFC' 
   },
-  modalItem: { padding: 15, borderBottomWidth: 1, borderBottomColor: '#eee' },
-  modalItemName: { fontWeight: 'bold', fontSize: 16 },
-  modalItemPhone: { color: '#666', marginTop: 2 }
+  modalTitle: { 
+    fontSize: 24, 
+    fontWeight: 'bold', 
+    marginBottom: 20, 
+    textAlign: 'center',
+    color: '#1E293B'
+  },
+  searchInput: {
+    height: 48,
+    borderColor: '#CBD5E1',
+    borderWidth: 2,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    backgroundColor: 'white',
+    fontSize: 16,
+    color: '#1E293B'
+  },
+  modalItem: { 
+    padding: 16, 
+    backgroundColor: 'white',
+    marginBottom: 8,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0'
+  },
+  modalItemName: { 
+    fontWeight: 'bold', 
+    fontSize: 16,
+    color: '#1E293B'
+  },
+  modalItemPhone: { 
+    color: '#64748B', 
+    marginTop: 4,
+    fontSize: 14
+  }
 });

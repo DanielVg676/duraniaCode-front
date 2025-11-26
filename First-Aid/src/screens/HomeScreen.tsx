@@ -25,7 +25,6 @@ import {
 
 const LifeAidLogo = require("@/assets/lifeaid.png");
 const screenWidth = Dimensions.get("window").width;
-const CAROUSEL_ITEM_WIDTH = screenWidth - 60;
 
 interface HomeScreenProps {
   navigation?: any;
@@ -90,8 +89,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     return (
       <View 
         style={{ 
-          width: CAROUSEL_ITEM_WIDTH,
-          marginHorizontal: 5,
+          width: screenWidth - 100,
+          paddingHorizontal: 10,
         }}
       >
         {item.renderContent()}
@@ -194,10 +193,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
-                snapToInterval={CAROUSEL_ITEM_WIDTH + 10}
+                snapToAlignment="center"
+                snapToInterval={screenWidth - 60}
                 decelerationRate="fast"
                 contentContainerStyle={{
-                  paddingHorizontal: (screenWidth - CAROUSEL_ITEM_WIDTH) / 2,
+                  paddingHorizontal: 30,
                 }}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={{
