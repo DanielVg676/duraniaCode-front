@@ -1,0 +1,22 @@
+# Framework web
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# Cliente HTTP
+requests==2.32.3
+
+# Para manejar archivos multipart
+python-multipart==0.0.18
+
+# Archivos asíncronos
+aiofiles==25.0.0
+
+# Whisper para transcripción de audio
+faster-whisper==1.1.0
+
+# Cliente de Ollama (opcional, requests es suficiente)
+ollama==0.4.4
+
+# Variables de entorno (opcional pero recomendado)
+python-dotenv==1.0.1
+
