@@ -156,16 +156,16 @@ const ChatScreen = () => {
           {/* Burbuja de Chat */}
           <View className={`p-4 rounded-2xl shadow-sm ${
             isUser 
-              ? 'bg-blue-600 rounded-br-none' 
-              : 'bg-white border border-slate-100 rounded-bl-none'
+              ? 'bg-blue-600 dark:bg-blue-500 rounded-br-none' 
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-bl-none'
           }`}>
             <Text className={`text-base leading-6 ${
-              isUser ? 'text-white font-medium' : 'text-slate-700'
+              isUser ? 'text-white font-medium' : 'text-slate-700 dark:text-slate-200'
             }`}>
               {message.content}
             </Text>
             <Text className={`text-[10px] mt-1 text-right ${
-              isUser ? 'text-blue-200' : 'text-slate-400'
+              isUser ? 'text-blue-200 dark:text-blue-300' : 'text-slate-400 dark:text-slate-500'
             }`}>
               {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
@@ -184,20 +184,20 @@ const ChatScreen = () => {
 
   return (
     <KeyboardAvoidingView 
-      className="flex-1 bg-slate-50" // Fondo general suave (gris muy claro)
+      className="flex-1 bg-slate-50 dark:bg-slate-900" // Fondo general suave (gris muy claro)
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       {/* Header Estilizado */}
-      <View className="bg-white pt-12 pb-4 px-4 flex-row items-center justify-between border-b border-slate-200 shadow-sm z-10">
+      <View className="bg-white dark:bg-slate-800 pt-12 pb-4 px-4 flex-row items-center justify-between border-b border-slate-200 dark:border-slate-700 shadow-sm z-10">
         <View className="flex-row items-center gap-3">
-          <View className="bg-blue-50 p-2.5 rounded-xl">
+          <View className="bg-blue-50 dark:bg-blue-900/30 p-2.5 rounded-xl">
             <Bot size={24} className="text-blue-600" color="#2563EB" />
           </View>
           <View>
-            <Text className="font-bold text-lg text-slate-800">FirstAId IA</Text>
+            <Text className="font-bold text-lg text-slate-800 dark:text-slate-100">FirstAId IA</Text>
             <View className="flex-row items-center gap-1">
               <View className={`w-2 h-2 rounded-full ${isTyping ? 'bg-blue-500 animate-pulse' : 'bg-green-500'}`} />
-              <Text className="text-xs text-slate-500 font-medium">
+              <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 {getAssistantStatus()}
               </Text>
             </View>
@@ -215,7 +215,7 @@ const ChatScreen = () => {
                 stopSpeaking();
               }
             }}
-            className={`w-10 h-10 rounded-full ${ttsEnabled ? 'bg-blue-50' : 'bg-slate-100'}`}
+            className={`w-10 h-10 rounded-full ${ttsEnabled ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-slate-100 dark:bg-slate-700'}`}
           >
             {ttsEnabled ? (
               <Volume2 size={20} color="#2563EB" />
@@ -256,9 +256,9 @@ const ChatScreen = () => {
             renderItem={({item}) => (
               <TouchableOpacity
                 onPress={() => setInputValue(item)}
-                className="mr-2 bg-white border border-blue-100 px-5 py-2.5 rounded-full shadow-sm"
+                className="mr-2 bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 px-5 py-2.5 rounded-full shadow-sm"
               >
-                <Text className="text-blue-600 text-sm font-semibold">{item}</Text>
+                <Text className="text-blue-600 dark:text-blue-400 text-sm font-semibold">{item}</Text>
               </TouchableOpacity>
             )}
           />
@@ -266,7 +266,7 @@ const ChatScreen = () => {
       )}
 
       {/* Input Area */}
-      <View className="bg-white px-4 py-3 border-t border-slate-100 flex-row items-end gap-2 pb-28">
+      <View className="bg-white dark:bg-slate-800 px-4 py-3 border-t border-slate-100 dark:border-slate-700 flex-row items-end gap-2 pb-32">
         
         {/* Botón de Micrófono */}
         <Button
@@ -274,7 +274,7 @@ const ChatScreen = () => {
           size="icon"
           onPress={toggleRecording}
           className={`h-12 w-12 rounded-full ${
-            isRecording ? 'bg-red-50' : 'bg-slate-100'
+            isRecording ? 'bg-red-50 dark:bg-red-900/30' : 'bg-slate-100 dark:bg-slate-700'
           }`}
         >
           {isRecording ? (
@@ -292,8 +292,8 @@ const ChatScreen = () => {
           placeholderTextColor="#94A3B8"
           editable={!isTyping && !isRecording}
           onSubmitEditing={sendMessage}
-          containerClassName="flex-1 bg-slate-100 rounded-3xl px-4 border-0"
-          className="text-slate-700 text-base"
+          containerClassName="flex-1 bg-slate-100 dark:bg-slate-700 rounded-3xl px-4 border-0"
+          className="text-slate-700 dark:text-slate-200 text-base"
         />
         
         {/* Botón Enviar */}

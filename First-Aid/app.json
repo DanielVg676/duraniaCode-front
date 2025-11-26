@@ -4,7 +4,7 @@
     "slug": "First-Aid",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./src/assets/lifeaid.png",
+    "icon": "./src/assets/logo.png",
     "scheme": "firstaid",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -14,7 +14,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./src/assets/lifeaid.png"
+        "foregroundImage": "./src/assets/logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
@@ -23,14 +23,14 @@
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./src/assets/lifeaid.png"
+      "favicon": "./src/assets/logo.png"
     },
     "plugins": [
       "expo-router",
       [
         "expo-splash-screen",
         {
-          "image": "./src/assets/lifeaid.png",
+          "image": "./src/assets/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

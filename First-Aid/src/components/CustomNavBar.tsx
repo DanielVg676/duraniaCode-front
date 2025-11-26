@@ -2,8 +2,9 @@ import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { useTheme } from "@/contexts/ThemeContext";
 import React from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity, useColorScheme } from "react-native";
 import Animated, {
     FadeIn,
     FadeOut,
@@ -13,18 +14,24 @@ import Animated, {
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
 
-const PRIMARY_COLOR = "#2563EB"; // Azul de FirstAId
-const SECONDARY_COLOR = "#fff";
-
 const CustomNavBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
 }) => {
+  const { isDarkMode } = useTheme();
+  const colorScheme = useColorScheme();
+  const isDark = isDarkMode || colorScheme === 'dark';
+
+  const PRIMARY_COLOR = isDark ? "#1e293b" : "#2563EB"; // Azul o slate oscuro
+  const SECONDARY_COLOR = "#fff";
+  const ICON_ACTIVE_COLOR = isDark ? "#60a5fa" : "#2563EB";
+  const ICON_INACTIVE_COLOR = isDark ? "#94a3b8" : "#fff";
+  
   return (
     <Animated.View 
       entering={FadeIn.duration(500)}
-      style={styles.container}
+      style={[styles.container, { backgroundColor: PRIMARY_COLOR }]}
     >
       {state.routes.map((route, index) => {
         if (["_sitemap", "+not-found"].includes(route.name)) return null;
@@ -58,13 +65,13 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
           >
             {getIconByRouteName(
               route.name,
-              isFocused ? PRIMARY_COLOR : SECONDARY_COLOR
+              isFocused ? ICON_ACTIVE_COLOR : ICON_INACTIVE_COLOR
             )}
             {isFocused && (
               <Animated.Text
                 entering={FadeIn.duration(200)}
                 exiting={FadeOut.duration(200)}
-                style={styles.text}
+                style={[styles.text, { color: ICON_ACTIVE_COLOR }]}
               >
                 {label as string}
               </Animated.Text>
@@ -97,10 +104,9 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: PRIMARY_COLOR,
     width: "90%",
     alignSelf: "center",
-    bottom: 30,
+    bottom: 10,
     borderRadius: 40,
     paddingHorizontal: 12,
     paddingVertical: 15,
@@ -120,7 +126,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   text: {
-    color: PRIMARY_COLOR,
     marginLeft: 8,
     fontWeight: "600",
     fontSize: 13,

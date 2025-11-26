@@ -31,7 +31,7 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onBack, navigation })
   };
 
   return (
-    <View className="flex-1 p-4">
+    <View className="flex-1 p-4 bg-slate-50 dark:bg-slate-900">
       {/* Header */}
       {onBack && (
         <View className="flex-row items-center mb-6">
@@ -43,7 +43,7 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onBack, navigation })
           >
             <ArrowLeft size={20} color="#4b5563" />
           </Button>
-          <Text className="text-xl font-bold ml-3">
+          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 ml-3">
             Checklist de Preparación
           </Text>
         </View>
@@ -55,7 +55,7 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onBack, navigation })
             <Card
               key={item.id}
               onPress={() => toggleItem(item.id)}
-              className="mb-3"
+              className="mb-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
             >
               <CardContent className="flex-row items-center p-4">
                 <Checkbox
@@ -66,8 +66,8 @@ const ChecklistScreen: React.FC<ChecklistScreenProps> = ({ onBack, navigation })
                 <Text
                   className={`font-medium ${
                     item.checked
-                      ? "line-through text-muted-foreground"
-                      : "text-foreground"
+                      ? "line-through text-slate-400 dark:text-slate-500"
+                      : "text-slate-800 dark:text-slate-100"
                   }`}
                 >
                   {item.label}

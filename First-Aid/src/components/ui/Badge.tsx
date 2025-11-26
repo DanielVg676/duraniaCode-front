@@ -46,7 +46,13 @@ function Badge({ className, variant, children, onPress, ...props }: BadgeProps) 
       className={cn(badgeVariants({ variant }), className)}
     >
       {typeof children === "string" ? (
-        <Text className="text-xs font-semibold text-inherit">{children}</Text>
+        <Text className={cn(
+          "text-xs font-semibold",
+          variant === "default" && "text-primary-foreground",
+          variant === "secondary" && "text-secondary-foreground",
+          variant === "destructive" && "text-destructive-foreground",
+          variant === "outline" && "text-foreground"
+        )}>{children}</Text>
       ) : (
         children
       )}

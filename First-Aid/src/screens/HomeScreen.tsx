@@ -23,7 +23,7 @@ import {
   View,
 } from "react-native";
 
-const LifeAidLogo = require("@/assets/lifeaid.png");
+const LifeAidLogo = require("@/assets/logo.png");
 const screenWidth = Dimensions.get("window").width;
 
 interface HomeScreenProps {
@@ -46,8 +46,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       id: "sos",
       title: "Botón de Emergencia",
       renderContent: () => (
-        <View className="bg-white rounded-3xl shadow-lg p-6 items-center justify-center" style={{ height: 280 }}>
-          <Text className="text-xl font-bold text-slate-800 mb-4">Botón de Emergencia</Text>
+        <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 items-center justify-center" style={{ height: 280 }}>
+          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Botón de Emergencia</Text>
           <SosButtonNative contacts={emergencyContacts} />
         </View>
       ),
@@ -56,7 +56,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       id: "contacts",
       title: "Contactos",
       renderContent: () => (
-        <View className="bg-white rounded-3xl shadow-lg p-4" style={{ height: 280 }}>
+        <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-4" style={{ height: 280 }}>
           <ContactManager onContactsChange={setEmergencyContacts} />
         </View>
       ),
@@ -150,13 +150,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   ];
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-slate-50 dark:bg-slate-900">
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 120 }}
       >
         {/* Header con Logo - REDUCIDO */}
-        <View className="bg-blue-600 pt-8 pb-6 px-6 rounded-b-[32px] shadow-sm mb-6">
+        <View className="bg-blue-600 dark:bg-slate-800 pt-8 pb-6 px-6 rounded-b-[32px] shadow-sm mb-6">
           <View className="items-center mb-3">
             <Image
               source={LifeAidLogo}
@@ -167,7 +167,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           <Text className="text-white text-center text-xl font-bold mb-1">
             FirstAId
           </Text>
-          <Text className="text-blue-100 text-center text-xs font-medium">
+          <Text className="text-blue-100 dark:text-slate-300 text-center text-xs font-medium">
             Tu asistente de primeros auxilios
           </Text>
         </View>
@@ -176,10 +176,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           {/* Carousel con SOS, Contacts y AI */}
           <View className="mb-8">
             <View className="flex-row items-center mb-4">
-              <View className="bg-red-50 p-2 rounded-xl mr-3">
+              <View className="bg-red-50 dark:bg-red-900/30 p-2 rounded-xl mr-3">
                 <Phone size={20} color="#EF4444" />
               </View>
-              <Text className="text-xl font-bold text-slate-800">
+              <Text className="text-xl font-bold text-slate-800 dark:text-slate-100">
                 Acciones Rápidas
               </Text>
             </View>
@@ -194,10 +194,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
                 snapToAlignment="center"
-                snapToInterval={screenWidth - 60}
+                snapToInterval={screenWidth - 80}
                 decelerationRate="fast"
+                scrollEventThrottle={16}
+                disableIntervalMomentum={true}
                 contentContainerStyle={{
-                  paddingHorizontal: 30,
+                  paddingHorizontal: 40,
                 }}
                 onViewableItemsChanged={onViewableItemsChanged}
                 viewabilityConfig={{
@@ -222,10 +224,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           {/* Guías de Primeros Auxilios */}
           <View className="mb-8">
             <View className="flex-row items-center mb-4">
-              <View className="bg-blue-50 p-2 rounded-xl mr-3">
+              <View className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-xl mr-3">
                 <Shield size={20} color="#2563EB" />
               </View>
-              <Text className="text-xl font-bold text-slate-800">
+              <Text className="text-xl font-bold text-slate-800 dark:text-slate-100">
                 Guías de Emergencia
               </Text>
             </View>
@@ -242,7 +244,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                           guideId: category.id,
                         })
                       }
-                      className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+                      className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
                       style={{ elevation: 2 }}
                     >
                       <View className="p-5 items-center">
@@ -252,7 +254,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                         >
                           <Icon size={32} color={category.color} />
                         </View>
-                        <Text className="font-bold text-sm text-slate-800 text-center">
+                        <Text className="font-bold text-sm text-slate-800 dark:text-slate-100 text-center">
                           {category.title}
                         </Text>
                       </View>
@@ -266,10 +268,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           {/* Preparación */}
           <View className="mb-8">
             <View className="flex-row items-center mb-4">
-              <View className="bg-green-50 p-2 rounded-xl mr-3">
+              <View className="bg-green-50 dark:bg-green-900/30 p-2 rounded-xl mr-3">
                 <PackageCheck size={20} color="#10B981" />
               </View>
-              <Text className="text-xl font-bold text-slate-800">
+              <Text className="text-xl font-bold text-slate-800 dark:text-slate-100">
                 Preparación
               </Text>
             </View>
@@ -279,22 +281,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => navigation?.navigate("Kit")}
-                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+                className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
                 style={{ elevation: 2 }}
               >
                 <View className="flex-row items-center p-4">
-                  <View className="bg-green-50 p-3 rounded-2xl mr-4">
+                  <View className="bg-green-50 dark:bg-green-900/30 p-3 rounded-2xl mr-4">
                     <Shield size={24} color="#10B981" />
                   </View>
                   <View className="flex-1">
-                    <Text className="font-bold text-slate-800 text-base mb-1">
+                    <Text className="font-bold text-slate-800 dark:text-slate-100 text-base mb-1">
                       Kit de Emergencia
                     </Text>
-                    <Text className="text-slate-500 text-sm">
+                    <Text className="text-slate-500 dark:text-slate-400 text-sm">
                       Ver contenido recomendado
                     </Text>
                   </View>
-                  <Text className="text-slate-400 text-xl">›</Text>
+                  <Text className="text-slate-400 dark:text-slate-500 text-xl">›</Text>
                 </View>
               </TouchableOpacity>
 
@@ -302,22 +304,22 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               <TouchableOpacity
                 activeOpacity={0.7}
                 onPress={() => navigation?.navigate("Checklist")}
-                className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden"
+                className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
                 style={{ elevation: 2 }}
               >
                 <View className="flex-row items-center p-4">
-                  <View className="bg-blue-50 p-3 rounded-2xl mr-4">
+                  <View className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-2xl mr-4">
                     <PackageCheck size={24} color="#3B82F6" />
                   </View>
                   <View className="flex-1">
-                    <Text className="font-bold text-slate-800 text-base mb-1">
+                    <Text className="font-bold text-slate-800 dark:text-slate-100 text-base mb-1">
                       Checklist de Preparación
                     </Text>
-                    <Text className="text-slate-500 text-sm">
+                    <Text className="text-slate-500 dark:text-slate-400 text-sm">
                       Marca lo que ya tienes listo
                     </Text>
                   </View>
-                  <Text className="text-slate-400 text-xl">›</Text>
+                  <Text className="text-slate-400 dark:text-slate-500 text-xl">›</Text>
                 </View>
               </TouchableOpacity>
             </View>

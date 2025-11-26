@@ -39,7 +39,7 @@ const KitScreen: React.FC<KitScreenProps> = ({ onBack, navigation }) => {
   ];
 
   return (
-    <View className="flex-1 p-4">
+    <View className="flex-1 p-4 bg-slate-50 dark:bg-slate-900">
       {/* Header */}
       {onBack && (
         <View className="flex-row items-center mb-6">
@@ -51,7 +51,7 @@ const KitScreen: React.FC<KitScreenProps> = ({ onBack, navigation }) => {
           >
             <ArrowLeft size={20} color="#4b5563" />
           </Button>
-          <Text className="text-xl font-bold ml-3">Kit de Emergencia</Text>
+          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 ml-3">Kit de Emergencia</Text>
         </View>
       )}
 
@@ -60,14 +60,14 @@ const KitScreen: React.FC<KitScreenProps> = ({ onBack, navigation }) => {
           {kitItems.map((item) => {
             const Icon = item.icon;
             return (
-              <Card key={item.id} className="mb-3">
+              <Card key={item.id} className="mb-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700">
                 <CardContent className="flex-row items-center p-4">
                   <Icon
                     size={24}
                     color="#3b82f6"
                     style={{ marginRight: 16 }}
                   />
-                  <Text className="font-medium text-foreground">
+                  <Text className="font-medium text-slate-800 dark:text-slate-100">
                     {item.label}
                   </Text>
                 </CardContent>

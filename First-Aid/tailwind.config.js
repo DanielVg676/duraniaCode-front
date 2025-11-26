@@ -2,56 +2,75 @@
 module.exports = {
   // NOTE: Update this to include the paths to all files that contain Nativewind classes.
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
+  darkMode: "class",
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
       colors: {
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: {
+          DEFAULT: '#e2e8f0', // light
+          dark: '#334155', // dark
+        },
+        input: {
+          DEFAULT: '#f1f5f9',
+          dark: '#1e293b',
+        },
+        ring: {
+          DEFAULT: '#3b82f6',
+          dark: '#60a5fa',
+        },
+        background: {
+          DEFAULT: '#f8fafc', // light
+          dark: '#0f172a', // dark
+        },
+        foreground: {
+          DEFAULT: '#1e293b', // light
+          dark: '#f1f5f9', // dark
+        },
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: '#3b82f6',
+          foreground: '#ffffff',
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: '#f1f5f9',
+          foreground: '#1e293b',
+          dark: '#1e293b',
+          'dark-foreground': '#f1f5f9',
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: '#ef4444',
+          foreground: '#ffffff',
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: '#f1f5f9',
+          foreground: '#64748b',
+          dark: '#1e293b',
+          'dark-foreground': '#94a3b8',
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: '#dbeafe',
+          foreground: '#1e40af',
+          dark: '#1e293b',
+          'dark-foreground': '#f1f5f9',
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: '#ffffff',
+          foreground: '#1e293b',
+          dark: '#1e293b',
+          'dark-foreground': '#f1f5f9',
         },
         emergency: {
-          DEFAULT: "hsl(var(--emergency))",
-          foreground: "hsl(var(--emergency-foreground))",
+          DEFAULT: '#ef4444',
+          foreground: '#ffffff',
         },
         success: {
-          DEFAULT: "hsl(var(--success))",
-          foreground: "hsl(var(--success-foreground))",
+          DEFAULT: '#10b981',
+          foreground: '#ffffff',
         },
         warning: {
-          DEFAULT: "hsl(var(--warning))",
-          foreground: "hsl(var(--warning-foreground))",
+          DEFAULT: '#f59e0b',
+          foreground: '#1e293b',
         },
-      },
-      borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
       },
     },
   },

@@ -172,10 +172,10 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <View className="flex-1 bg-slate-50 dark:bg-slate-900">
       {/* Header */}
-      <View className="bg-card border-b border-border p-4">
-        <Text className="text-xl font-bold text-foreground mb-4">Buscar Guías</Text>
+      <View className="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 p-4">
+        <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Buscar Guías</Text>
         
         <View className="relative mb-2">
           <Input
@@ -190,7 +190,7 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
         </View>
         
         {searchTerm && (
-          <Text className="text-sm text-muted-foreground mt-2">
+          <Text className="text-sm text-slate-600 dark:text-slate-400 mt-2">
             {filteredGuides.length} resultado{filteredGuides.length !== 1 ? 's' : ''} 
             {searchTerm && ` para "${searchTerm}"`}
           </Text>
@@ -198,21 +198,21 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
       </View>
 
       {/* Results */}
-      <ScrollView className="flex-1 p-4" contentContainerStyle={{ paddingBottom: 120 }}>
+      <ScrollView className="flex-1 p-4 dark:bg-slate-900" contentContainerStyle={{ paddingBottom: 120 }}>
         {searchTerm === '' ? (
           <View className="space-y-4">
             <View className="items-center py-8">
               <Search size={48} color="#6b7280" style={{ marginBottom: 16 }} />
-              <Text className="text-lg font-semibold text-foreground mb-2 text-center">
+              <Text className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2 text-center">
                 Busca guías de emergencia
               </Text>
-              <Text className="text-muted-foreground text-center">
+              <Text className="text-slate-600 dark:text-slate-400 text-center">
                 Escribe síntomas o palabras clave para encontrar la guía adecuada
               </Text>
             </View>
             
             <View className="space-y-2 mt-6">
-              <Text className="font-semibold text-foreground mb-2">Búsquedas sugeridas:</Text>
+              <Text className="font-semibold text-slate-800 dark:text-slate-100 mb-2">Búsquedas sugeridas:</Text>
               <View className="flex-row flex-wrap gap-2">
                 {suggestedSearches.map((suggestion) => (
                   <Badge
@@ -231,10 +231,10 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
             {filteredGuides.length === 0 ? (
               <View className="items-center py-8">
                 <AlertTriangle size={48} color="#6b7280" style={{ marginBottom: 16 }} />
-                <Text className="text-lg font-semibold text-foreground mb-2 text-center">
+                <Text className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-2 text-center">
                   No se encontraron resultados
                 </Text>
-                <Text className="text-muted-foreground mb-4 text-center">
+                <Text className="text-slate-600 dark:text-slate-400 mb-4 text-center">
                   Intenta con otras palabras clave o consulta con el Chat IA
                 </Text>
                 <View className="flex-row gap-2 justify-center">
@@ -259,17 +259,17 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
                   <Card 
                     key={guide.id}
                     onPress={() => onViewChange?.('guide', guide.id)}
-                    className="mb-3"
+                    className="mb-3 bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700"
                   >
                     <CardContent className="p-4">
                       <View className="flex-row items-start gap-3">
-                        <View className="p-2 bg-accent rounded-lg">
+                        <View className="p-2 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
                           <Icon size={20} color="#3b82f6" />
                         </View>
                         
                         <View className="flex-1">
                           <View className="flex-row items-start justify-between gap-2 mb-2">
-                            <Text className="font-semibold text-foreground text-sm leading-tight flex-1">
+                            <Text className="font-semibold text-slate-800 dark:text-slate-100 text-sm leading-tight flex-1">
                               {guide.title}
                             </Text>
                             <View className={cn("px-2.5 py-0.5 rounded-full", getUrgencyColor(guide.urgency))}>
@@ -279,7 +279,7 @@ const SearchScreen = ({ onViewChange }: SearchScreenProps = {}) => {
                             </View>
                           </View>
                           
-                          <Text className="text-muted-foreground text-xs mb-3 leading-relaxed">
+                          <Text className="text-slate-600 dark:text-slate-400 text-xs mb-3 leading-relaxed">
                             {guide.description}
                           </Text>
                           

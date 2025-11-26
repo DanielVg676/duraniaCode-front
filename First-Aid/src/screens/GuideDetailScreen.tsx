@@ -198,9 +198,9 @@ const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
   };
 
   return (
-    <View className="flex-1 bg-slate-50">
+    <View className="flex-1 bg-slate-50 dark:bg-slate-900">
       {/* Header Moderno */}
-      <View className="bg-white border-b border-slate-100 shadow-sm">
+      <View className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 shadow-sm">
         <View className="pt-4 pb-4 px-5">
           <View className="flex-row items-center mb-4">
             <Button 
@@ -212,7 +212,7 @@ const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
               <ArrowLeft size={20} color="#64748B" />
             </Button>
             <View className="flex-1">
-              <Text className="text-2xl font-bold text-slate-800" numberOfLines={2}>
+              <Text className="text-2xl font-bold text-slate-800 dark:text-slate-100" numberOfLines={2}>
                 {currentGuide.title}
               </Text>
             </View>
@@ -250,8 +250,8 @@ const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
       >
         <View className="px-5 py-6">
           {/* Descripción */}
-          <View className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-6">
-            <Text className="text-slate-700 leading-relaxed text-sm">
+          <View className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-4 mb-6">
+            <Text className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm">
               {currentGuide.description}
             </Text>
           </View>
@@ -259,16 +259,16 @@ const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
           {/* Step Progress */}
           <View className="mb-6">
             <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-sm font-bold text-slate-800">
+              <Text className="text-sm font-bold text-slate-800 dark:text-slate-100">
                 Paso {currentStep + 1} de {currentGuide.steps.length}
               </Text>
-              <Text className="text-xs text-slate-500 font-medium">
+              <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                 {Math.round(((currentStep + 1) / currentGuide.steps.length) * 100)}% Completado
               </Text>
             </View>
             
             {/* Barra de progreso */}
-            <View className="h-3 bg-slate-200 rounded-full overflow-hidden">
+            <View className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <View 
                 className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
                 style={{ 
@@ -298,34 +298,34 @@ const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
           </View>
 
           {/* Current Step Card */}
-          <Card className="mb-6 bg-white rounded-3xl shadow-lg border-0 overflow-hidden">
+          <Card className="mb-6 bg-white dark:bg-slate-800 rounded-3xl shadow-lg border-slate-200 dark:border-slate-700 overflow-hidden">
             <CardHeader className="pb-3 pt-6 px-6">
               <View className="flex-row items-center mb-2" style={{ gap: 12 }}>
-                <View className="bg-blue-600 rounded-2xl w-12 h-12 items-center justify-center shadow-md shadow-blue-300">
+                <View className="bg-blue-600 dark:bg-blue-500 rounded-2xl w-12 h-12 items-center justify-center shadow-md shadow-blue-300">
                   <Text className="text-xl font-bold text-white">
                     {currentStep + 1}
                   </Text>
                 </View>
-                <Text className="text-xl font-bold text-slate-800 flex-1" numberOfLines={2}>
+                <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 flex-1" numberOfLines={2}>
                   {currentStepData.title}
                 </Text>
               </View>
             </CardHeader>
             <CardContent className="px-6 pb-6">
-              <Text className="text-slate-700 mb-4 leading-relaxed text-base">
+              <Text className="text-slate-700 dark:text-slate-300 mb-4 leading-relaxed text-base">
                 {currentStepData.content}
               </Text>
               
               {currentStepData.warning && (
-                <View className="bg-orange-50 border-2 border-orange-200 rounded-2xl p-4 flex-row items-start" style={{ gap: 10 }}>
-                  <View className="bg-orange-100 p-2 rounded-xl">
+                <View className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-2xl p-4 flex-row items-start" style={{ gap: 10 }}>
+                  <View className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-xl">
                     <AlertTriangle size={20} color="#f97316" />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-xs font-bold text-orange-800 mb-1">
+                    <Text className="text-xs font-bold text-orange-800 dark:text-orange-400 mb-1">
                       ⚠️ IMPORTANTE
                     </Text>
-                    <Text className="text-sm text-orange-900 leading-relaxed">
+                    <Text className="text-sm text-orange-900 dark:text-orange-300 leading-relaxed">
                       {currentStepData.warning}
                     </Text>
                   </View>
