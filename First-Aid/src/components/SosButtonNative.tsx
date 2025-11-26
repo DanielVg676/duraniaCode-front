@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, ActivityIndicator, Alert, ViewStyle, View } from 'react-native';
 import * as Location from 'expo-location';
 import * as SMS from 'expo-sms';
+import React, { useState } from 'react';
+import { ActivityIndicator, Alert, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
 
 interface SosButtonProps {
   contacts: string[]; // Recibe los contactos como propiedad

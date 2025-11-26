@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, FlatList, StyleSheet, Modal, TouchableOpacity, Alert, TextInput } from 'react-native';
-import * as Contacts from 'expo-contacts';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Contacts from 'expo-contacts';
+import React, { useEffect, useState } from 'react';
+import { Alert, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Definimos la estructura de un contacto simple
 export interface SavedContact {
