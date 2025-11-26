@@ -5,9 +5,9 @@ import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 import Animated, {
-  FadeIn,
-  FadeOut,
-  LinearTransition,
+    FadeIn,
+    FadeOut,
+    LinearTransition,
 } from "react-native-reanimated";
 
 const AnimatedTouchableOpacity =

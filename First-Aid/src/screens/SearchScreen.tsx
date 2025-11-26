@@ -3,15 +3,15 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import {
-    Activity,
-    AlertTriangle,
-    Bug,
-    Droplet,
-    Flame,
-    Heart,
-    Search,
-    Shield,
-    Thermometer
+  Activity,
+  AlertTriangle,
+  Bug,
+  Droplet,
+  Flame,
+  Heart,
+  Search,
+  Shield,
+  Thermometer
 } from 'lucide-react-native';
 import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
