@@ -5,6 +5,12 @@ import { Platform, StatusBar, View } from "react-native";
 import "./global.css";
 import { ThemeProvider, useTheme } from "./contexts/ThemeContext";
 import MainNavigator from "./navigators/MainNavigator";
+import { LogBox } from 'react-native';
+
+// Ignora los ciclos de logs específicos de Reanimated
+LogBox.ignoreLogs([
+  '[Reanimated] Reading from `value` during component render',
+]);
 
 const lightTheme = {
   ...DefaultTheme,

@@ -1,9 +1,11 @@
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Switch } from '@/components/ui/Switch'; // Asegúrate de que este archivo tenga el código que corregimos antes
+import { Switch } from '@/components/ui/Switch';
 import { useTheme } from '@/contexts/ThemeContext';
 import {
+  Bell,
+  ChevronRight,
   Download,
   Globe,
   Heart,
@@ -13,268 +15,260 @@ import {
   Phone,
   Settings as SettingsIcon,
   Shield,
+  Smartphone,
   Users
 } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Linking, ScrollView, Text, View } from 'react-native';
+import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 const SettingsScreen = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
+  // Estados para los switches
   const [offlineMode, setOfflineMode] = useState(true);
-  const [location, setLocation] = useState(true);
+  const [locationEnabled, setLocationEnabled] = useState(true);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
-  const settingsOptions = [
+  // Configuración de secciones
+  const generalSettings = [
     {
+      id: 'lang',
       title: 'Idioma',
-      description: 'Español (por defecto)',
+      description: 'Español (Latinoamérica)',
       icon: Globe,
-      action: 'select',
-      value: 'es'
+      type: 'value',
+      value: 'ES'
     },
     {
+      id: 'dark_mode',
       title: 'Modo Oscuro',
-      description: 'Cambiar tema de la aplicación',
+      description: 'Interfaz con colores oscuros',
       icon: Moon,
-      action: 'toggle',
+      type: 'toggle',
       value: isDarkMode,
-      onChange: () => toggleDarkMode()
+      onToggle: () => toggleDarkMode()
     },
     {
+      id: 'offline',
       title: 'Modo Offline',
-      description: 'Funciona sin conexión a internet',
+      description: 'Descargar guías automáticamente',
       icon: Download,
-      action: 'toggle',
+      type: 'toggle',
       value: offlineMode,
-      onChange: setOfflineMode,
-      disabled: true // Ejemplo de switch deshabilitado
+      onToggle: () => setOfflineMode(!offlineMode)
+    },
+  ];
+
+  const privacySettings = [
+    {
+      id: 'location',
+      title: 'Ubicación SOS',
+      description: 'Compartir ubicación al llamar al 911',
+      icon: MapPin,
+      type: 'toggle',
+      value: locationEnabled,
+      onToggle: () => setLocationEnabled(!locationEnabled)
     },
     {
-      title: 'Ubicación de Emergencia',
-      description: 'Permitir acceso para emergencias',
-      icon: MapPin,
-      action: 'toggle',
-      value: location,
-      onChange: setLocation
+      id: 'notifications',
+      title: 'Alertas',
+      description: 'Recibir notificaciones de seguridad',
+      icon: Bell,
+      type: 'toggle',
+      value: notificationsEnabled,
+      onToggle: () => setNotificationsEnabled(!notificationsEnabled)
     }
   ];
 
   const emergencyContacts = [
-    {
-      name: 'Servicios de Emergencia',
-      number: '911',
-      type: 'Emergencias Generales'
-    },
-    {
-      name: 'Cruz Roja',
-      number: '065',
-      type: 'Primeros Auxilios'
-    },
-    {
-      name: 'Bomberos',
-      number: '080',
-      type: 'Incendios y Rescate'
-    }
+    { name: 'Emergencias', number: '911', type: 'General', color: 'bg-red-500' },
+    { name: 'Cruz Roja', number: '065', type: 'Médica', color: 'bg-white border border-red-200' },
+    { name: 'Bomberos', number: '080', type: 'Rescate', color: 'bg-white border border-red-200' }
   ];
 
+  const handleCall = (number: string) => {
+    Linking.openURL(`tel:${number}`);
+  };
+
   return (
-    <ScrollView 
-      className="flex-1 bg-slate-50 dark:bg-slate-900" 
-      contentContainerStyle={{ paddingBottom: 140 }}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header Moderno con Gradiente Visual */}
-      <View className="bg-blue-600 dark:bg-slate-800 pt-12 pb-10 px-6 rounded-b-[32px] shadow-sm mb-6">
-        <View className="items-center">
-          <View className="bg-blue-500/30 dark:bg-slate-700/50 p-4 rounded-2xl mb-3 border border-blue-400/20 dark:border-slate-600/20">
-            <SettingsIcon size={32} color="white" />
-          </View>
-          <Text className="text-2xl font-bold text-white mb-1">Configuración</Text>
-          <Text className="text-blue-100 dark:text-slate-300 text-sm text-center font-medium">
-            Personaliza tu experiencia FirstAId
-          </Text>
-        </View>
-      </View>
-
-      <View className="px-5">
-        
-        {/* General Settings */}
-        <Card className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-8">
-          <CardHeader className="pb-2 pt-5 px-5">
-            <View className="flex-row items-center gap-3">
-              <View className="bg-blue-50 dark:bg-blue-900/30 p-2.5 rounded-xl">
-                <SettingsIcon size={20} color="#2563EB" />
-              </View>
-              <CardTitle className="text-lg font-bold text-slate-800 dark:text-slate-100">General</CardTitle>
-            </View>
-          </CardHeader>
-          <CardContent className="px-5 pb-5 pt-2">
-            <View style={{ gap: 16 }}>
-            {settingsOptions.map((option) => {
-              const Icon = option.icon;
-              return (
-                <View 
-                  key={option.title} 
-                  className="flex-row items-center justify-between py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600"
-                >
-                  <View className="flex-row items-center gap-3 flex-1 mr-2">
-                    <View className="bg-white dark:bg-slate-600 p-2 rounded-xl shadow-sm">
-                      <Icon size={18} color="#3B82F6" />
-                    </View>
-                    <View className="flex-1">
-                      <Text className="font-semibold text-slate-800 dark:text-slate-100 text-[15px]">{option.title}</Text>
-                      <Text className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 leading-tight" numberOfLines={1}>
-                        {option.description}
-                      </Text>
-                    </View>
-                  </View>
-                  
-                  {/* Switch Placement Fix: Direct usage inside justify-between container */}
-                  {option.action === 'toggle' && (
-                    <Switch
-                      checked={option.value as boolean}
-                      onCheckedChange={option.onChange}
-                      disabled={option.disabled}
-                    />
-                  )}
-                  
-                  {option.action === 'select' && (
-                    <Badge className="bg-blue-100 border-0 text-blue-700 font-bold px-2.5">
-                      ES
-                    </Badge>
-                  )}
+    <View className="flex-1 bg-slate-50 dark:bg-slate-900">
+      <StatusBar style="light" />
+      
+      {/* HEADER DE MARCA (#002e90) */}
+      <View className="bg-[#002e90] pt-14 pb-8 px-6 rounded-b-[32px] shadow-lg z-10 mb-6">
+        <View className="flex-row items-center justify-between mb-2">
+            <View className="flex-row items-center gap-4">
+                <View className="bg-white/10 p-3 rounded-2xl border border-white/10">
+                    <SettingsIcon size={28} color="white" />
                 </View>
-              );
-            })}
-            </View>
-          </CardContent>
-        </Card>
-
-        {/* Emergency Contacts */}
-        <Card className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-8">
-          <CardHeader className="pb-2 pt-5 px-5">
-            <View className="flex-row items-center gap-3">
-              <View className="bg-red-50 dark:bg-red-900/30 p-2.5 rounded-xl">
-                <Phone size={20} color="#EF4444" />
-              </View>
-              <Text className="text-lg font-bold text-slate-800 dark:text-slate-100">Contactos SOS</Text>
-            </View>
-          </CardHeader>
-          <CardContent className="px-5 pb-5 pt-2">
-            <View style={{ gap: 16 }}>
-            {emergencyContacts.map((contact) => (
-              <View 
-                key={contact.number} 
-                className="flex-row items-center justify-between p-4 rounded-2xl bg-red-50/50 dark:bg-red-900/20 border border-red-100 dark:border-red-800"
-              >
-                <View className="flex-1 mr-2">
-                  <Text className="font-bold text-slate-800 dark:text-slate-100">{contact.name}</Text>
-                  <Text className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{contact.type}</Text>
+                <View>
+                    <Text className="text-2xl font-bold text-white">Ajustes</Text>
+                    <Text className="text-blue-200 text-sm font-medium">Perfil y Preferencias</Text>
                 </View>
-                <View className="flex-row items-center gap-2">
-                  <View className="bg-white px-3 py-1.5 rounded-full border border-red-100">
-                    <Text className="text-red-600 font-bold text-sm">{contact.number}</Text>
-                  </View>
-                  <Button 
-                    size="sm" 
-                    className="bg-red-500 h-9 w-9 rounded-full p-0 flex items-center justify-center shadow-red-200 shadow-md"
-                    onPress={() => Linking.openURL(`tel:${contact.number}`)}
-                  >
-                    <Phone size={14} color="white" />
-                  </Button>
-                </View>
-              </View>
-            ))}
             </View>
-          </CardContent>
-        </Card>
-
-        {/* App Info - CORREGIDO: Espaciado aumentado (space-y-3) */}
-        <Card className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 mb-8">
-          <CardHeader className="pb-2 pt-5 px-5">
-            <View className="flex-row items-center gap-3">
-              <View className="bg-blue-50 dark:bg-blue-900/30 p-2.5 rounded-xl">
-                <Info size={20} color="#3B82F6" />
-              </View>
-              <Text className="text-lg font-bold text-slate-800 dark:text-slate-100">Información</Text>
-            </View>
-          </CardHeader>
-          <CardContent className="px-5 pb-5 pt-2">
-            <View style={{ gap: 16 }}> {/* Espaciado entre elementos */}
-              
-              <View className="flex-row justify-between items-center py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600">
-                <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">Versión</Text>
-                <Badge className="bg-blue-100 text-blue-700 border-0">1.0.0</Badge>
-              </View>
-              
-              <View className="flex-row justify-between items-center py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600">
-                <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">Modo</Text>
-                <Badge className="bg-emerald-100 text-emerald-700 border-0">Offline</Badge>
-              </View>
-              
-              <View className="flex-row justify-between items-center py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600">
-                <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">Guías</Text>
-                <Badge className="bg-blue-100 text-blue-700 border-0">10 Disponibles</Badge>
-              </View>
-              
-              <View className="flex-row justify-between items-center py-4 px-4 rounded-2xl bg-slate-50 dark:bg-slate-700/50 border border-slate-100 dark:border-slate-600">
-                <Text className="text-sm font-semibold text-slate-600 dark:text-slate-300">Actualizado</Text>
-                <Text className="text-xs font-bold text-slate-400 dark:text-slate-500">20 AGO 2025</Text>
-              </View>
-
-            </View>
-          </CardContent>
-        </Card>
-
-        {/* Credits */}
-        <Card className="bg-blue-50/50 dark:bg-slate-800/50 rounded-3xl border border-blue-100 dark:border-slate-700 overflow-hidden mb-8">
-           <View className="absolute top-0 right-0 p-4 opacity-10">
-              <Heart size={100} color="#3B82F6" />
-           </View>
-          <CardHeader className="pb-2 pt-5 px-5">
-            <View className="flex-row items-center gap-3">
-              <View className="bg-white dark:bg-slate-700 p-2.5 rounded-xl shadow-sm">
-                <Heart size={20} color="#EF4444" />
-              </View>
-              <Text className="text-lg font-bold text-slate-800 dark:text-slate-100">Sobre FirstAId</Text>
-            </View>
-          </CardHeader>
-          <CardContent className="px-5 pb-5 pt-2">
-            <Text className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed mb-5">
-              FirstAId es tu compañero confiable para emergencias médicas offline.
-            </Text>
             
-            <View style={{ gap: 12 }}>
-              <View className="bg-white/80 dark:bg-slate-700/50 p-4 rounded-xl flex-row items-center gap-3 border border-blue-100/50 dark:border-slate-600">
-                <Users size={16} color="#3B82F6" />
-                <Text className="text-xs text-slate-700 dark:text-slate-300 font-medium">Equipo FirstAId</Text>
-              </View>
-              <View className="bg-white/80 dark:bg-slate-700/50 p-4 rounded-xl flex-row items-center gap-3 border border-blue-100/50 dark:border-slate-600">
-                <Shield size={16} color="#10B981" />
-                <Text className="text-xs text-slate-700 dark:text-slate-300 font-medium">Validado por médicos</Text>
-              </View>
+            {/* Avatar de usuario simulado */}
+            <View className="w-12 h-12 bg-white/20 rounded-full items-center justify-center border-2 border-white/10">
+                <Text className="text-white font-bold text-lg">CV</Text>
             </View>
-          </CardContent>
-        </Card>
+        </View>
+      </View>
 
-        {/* Action Buttons - CORREGIDO: Espaciado aumentado (gap: 20) */}
-        <View style={{ gap: 20 }} className="pt-2 pb-8">
-          <Button className="w-full bg-blue-600 h-14 rounded-2xl shadow-lg shadow-blue-200 active:scale-95 transition-transform">
-            <View className="flex-row items-center justify-center gap-3">
-              <Download size={20} color="white" />
-              <Text className="text-white font-bold text-base">Descargar Guías Adicionales</Text>
+      <ScrollView 
+        className="flex-1 px-5" 
+        contentContainerStyle={{ paddingBottom: 140 }}
+        showsVerticalScrollIndicator={false}
+      >
+        
+        {/* SECCIÓN: NÚMEROS DE EMERGENCIA */}
+        <View className="mb-8">
+            <Text className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3 ml-2">
+                Directorios SOS
+            </Text>
+            <View className="bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700">
+                <View style={{ gap: 12 }}>
+                    {emergencyContacts.map((contact, index) => {
+                        const isPrimary = contact.number === '911';
+                        return (
+                            <TouchableOpacity 
+                                key={contact.number}
+                                onPress={() => handleCall(contact.number)}
+                                className={`flex-row items-center justify-between p-3 rounded-2xl ${isPrimary ? 'bg-red-50 dark:bg-red-900/20' : 'bg-slate-50 dark:bg-slate-700/30'}`}
+                            >
+                                <View className="flex-row items-center gap-3">
+                                    <View className={`w-10 h-10 rounded-full items-center justify-center ${contact.color}`}>
+                                        <Phone size={18} color={isPrimary ? 'white' : '#ef4444'} />
+                                    </View>
+                                    <View>
+                                        <Text className="font-bold text-slate-800 dark:text-slate-100">{contact.name}</Text>
+                                        <Text className="text-xs text-slate-500 dark:text-slate-400">{contact.type}</Text>
+                                    </View>
+                                </View>
+                                <View className="bg-white dark:bg-slate-600 px-3 py-1 rounded-lg">
+                                    <Text className="font-bold text-slate-700 dark:text-slate-200">{contact.number}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
             </View>
-          </Button>
-          
-          <Button variant="outline" className="w-full h-14 rounded-2xl border-2 border-slate-200 bg-white active:bg-slate-50">
-            <View className="flex-row items-center justify-center gap-3">
-              <Info size={20} color="#64748B" />
-              <Text className="text-slate-600 font-bold text-base">Tutorial de la App</Text>
-            </View>
-          </Button>
         </View>
 
-      </View>
-    </ScrollView>
+        {/* SECCIÓN: GENERAL */}
+        <View className="mb-8">
+            <Text className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3 ml-2">
+                General
+            </Text>
+            <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                {generalSettings.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                        <View key={item.id}>
+                            <View className="flex-row items-center justify-between p-4">
+                                <View className="flex-row items-center gap-4 flex-1">
+                                    <View className="bg-blue-50 dark:bg-blue-900/30 w-10 h-10 rounded-xl items-center justify-center">
+                                        <Icon size={20} color="#002e90" />
+                                    </View>
+                                    <View className="flex-1 mr-2">
+                                        <Text className="font-semibold text-slate-800 dark:text-slate-100 text-base">
+                                            {item.title}
+                                        </Text>
+                                        <Text className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
+                                            {item.description}
+                                        </Text>
+                                    </View>
+                                </View>
+
+                                {item.type === 'toggle' ? (
+                                    <Switch 
+                                        checked={item.value as boolean}
+                                        onCheckedChange={item.onToggle}
+                                    />
+                                ) : (
+                                    <View className="bg-slate-100 dark:bg-slate-700 px-3 py-1 rounded-lg flex-row items-center">
+                                        <Text className="text-xs font-bold text-slate-600 dark:text-slate-300 mr-1">{item.value}</Text>
+                                        <ChevronRight size={14} color="#94a3b8" />
+                                    </View>
+                                )}
+                            </View>
+                            {/* Separador excepto en el último */}
+                            {index < generalSettings.length - 1 && (
+                                <View className="h-[1px] bg-slate-100 dark:bg-slate-700 mx-16" />
+                            )}
+                        </View>
+                    );
+                })}
+            </View>
+        </View>
+
+        {/* SECCIÓN: PRIVACIDAD Y SEGURIDAD */}
+        <View className="mb-8">
+            <Text className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-3 ml-2">
+                Seguridad
+            </Text>
+            <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                {privacySettings.map((item, index) => {
+                    const Icon = item.icon;
+                    return (
+                        <View key={item.id}>
+                            <View className="flex-row items-center justify-between p-4">
+                                <View className="flex-row items-center gap-4 flex-1">
+                                    <View className="bg-orange-50 dark:bg-orange-900/20 w-10 h-10 rounded-xl items-center justify-center">
+                                        <Icon size={20} color="#f97316" />
+                                    </View>
+                                    <View className="flex-1 mr-2">
+                                        <Text className="font-semibold text-slate-800 dark:text-slate-100 text-base">
+                                            {item.title}
+                                        </Text>
+                                        <Text className="text-xs text-slate-500 dark:text-slate-400 leading-tight">
+                                            {item.description}
+                                        </Text>
+                                    </View>
+                                </View>
+                                <Switch 
+                                    checked={item.value as boolean}
+                                    onCheckedChange={item.onToggle}
+                                />
+                            </View>
+                            {index < privacySettings.length - 1 && (
+                                <View className="h-[1px] bg-slate-100 dark:bg-slate-700 mx-16" />
+                            )}
+                        </View>
+                    );
+                })}
+            </View>
+        </View>
+
+        {/* INFO APP */}
+        <View className="mb-8 bg-blue-50 dark:bg-slate-800/50 rounded-3xl p-6 items-center border border-blue-100 dark:border-slate-700">
+            <View className="w-16 h-16 bg-white dark:bg-slate-700 rounded-2xl items-center justify-center shadow-sm mb-3">
+                <Heart size={32} color="#002e90" fill="#002e90" />
+            </View>
+            <Text className="text-lg font-bold text-slate-800 dark:text-slate-100">FirstAId App</Text>
+            <Text className="text-slate-500 dark:text-slate-400 text-xs mb-4">Versión 1.0.0 (Build 2025)</Text>
+            
+            <View className="flex-row gap-3 w-full">
+                <TouchableOpacity className="flex-1 bg-white dark:bg-slate-700 py-3 rounded-xl border border-slate-200 dark:border-slate-600 items-center">
+                    <Text className="text-xs font-bold text-slate-700 dark:text-slate-200">Términos</Text>
+                </TouchableOpacity>
+                <TouchableOpacity className="flex-1 bg-white dark:bg-slate-700 py-3 rounded-xl border border-slate-200 dark:border-slate-600 items-center">
+                    <Text className="text-xs font-bold text-slate-700 dark:text-slate-200">Privacidad</Text>
+                </TouchableOpacity>
+            </View>
+        </View>
+
+        {/* BOTÓN FINAL */}
+        <Button 
+            className="w-full bg-[#002e90] h-14 rounded-2xl shadow-lg shadow-blue-900/20 mb-6"
+        >
+            <View className="flex-row items-center justify-center gap-2">
+                <Smartphone size={20} color="white" />
+                <Text className="text-white font-bold text-base">Contactar Soporte</Text>
+            </View>
+        </Button>
+
+      </ScrollView>
+    </View>
   );
 };
 

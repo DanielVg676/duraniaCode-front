@@ -1,6 +1,7 @@
 // src/screens/HomeScreen.tsx
 import ContactManager from "@/components/ContactManager";
 import SosButtonNative from "@/components/SosButtonNative";
+import { StatusBar } from "expo-status-bar";
 import {
   Activity,
   Bot,
@@ -11,6 +12,7 @@ import {
   Phone,
   Shield,
   Zap,
+  UsersRound,
 } from "lucide-react-native";
 import React, { useRef, useState } from "react";
 import {
@@ -24,7 +26,11 @@ import {
 } from "react-native";
 
 const LifeAidLogo = require("@/assets/logo.png");
-const screenWidth = Dimensions.get("window").width;
+
+// --- CONSTANTES DE DISEÑO ---
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_WIDTH = SCREEN_WIDTH * 0.9; // Más grande
+const SPACING_FOR_CARD_INSET = (SCREEN_WIDTH - CARD_WIDTH) / 2;
 
 interface HomeScreenProps {
   navigation?: any;
@@ -39,6 +45,7 @@ interface CarouselItem {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [emergencyContacts, setEmergencyContacts] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+
   const flatListRef = useRef<FlatList>(null);
 
   const slides: CarouselItem[] = [
@@ -46,17 +53,29 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       id: "sos",
       title: "Botón de Emergencia",
       renderContent: () => (
-        <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-6 items-center justify-center" style={{ height: 280 }}>
-          <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-4">Botón de Emergencia</Text>
+        <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-ls border border-slate-200 dark:border-slate-700 p-6 items-center justify-center h-full">
+          <View className="flex-row items-center mb-3">
+            <Text className="text-3xl font-bold text-slate-800 dark:text-slate-100">
+              Botón SOS
+            </Text>
+          </View>
           <SosButtonNative contacts={emergencyContacts} />
         </View>
       ),
     },
     {
       id: "contacts",
-      title: "Contactos",
+      title: "Contactos de Emergencia",
       renderContent: () => (
-        <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-lg p-4" style={{ height: 280 }}>
+        <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-ls border border-slate-200 dark:border-slate-700 p-6 h-full">
+          <View className="flex-row items-center mb-3">
+            <View className="bg-blue-100 p-2 rounded-2xl mr-2">
+              <UsersRound size={28} color="#2563eb" />
+            </View>
+            <Text className="text-xl font-bold text-slate-800 dark:text-slate-100">
+              Contactos de Emergencia
+            </Text>
+          </View>
           <ContactManager onContactsChange={setEmergencyContacts} />
         </View>
       ),
@@ -66,18 +85,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       title: "Asistente IA",
       renderContent: () => (
         <TouchableOpacity
-          activeOpacity={0.8}
+          activeOpacity={0.9}
           onPress={() => navigation?.navigate("ChatIA")}
-          className="bg-blue-600 rounded-3xl shadow-lg overflow-hidden"
-          style={{ height: 280 }}
+          className="bg-[#002e90] rounded-3xl shadow-ls h-full overflow-hidden relative"
         >
+          {/* Fondos decorativos */}
+          <View className="absolute top-[-30] right-[-30] w-40 h-40 bg-white/10 rounded-full" />
+          <View className="absolute bottom-[-20] left-[-20] w-32 h-32 bg-white/5 rounded-full" />
+
           <View className="flex-1 items-center justify-center p-6">
-            <View className="bg-blue-500 p-6 rounded-3xl mb-4">
-              <Bot size={48} color="white" />
+            <View className="bg-white/20 p-5 rounded-3xl mb-5 backdrop-blur-sm">
+              <Bot size={56} color="white" />
             </View>
-            <Text className="text-white font-bold text-2xl mb-2">Asistente IA</Text>
-            <Text className="text-blue-100 text-center text-base font-medium">
-              Pregunta sobre tu emergencia y obtén ayuda inmediata
+            <Text className="text-white font-bold text-3xl mb-1">Asistente IA</Text>
+            <Text className="text-blue-100 text-center text-base px-4">
+              Pregunta sobre cualquier emergencia y recibe ayuda paso a paso.
             </Text>
           </View>
         </TouchableOpacity>
@@ -85,12 +107,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     },
   ];
 
-  const renderCarouselItem = ({ item, index }: { item: CarouselItem; index: number }) => {
+  const renderCarouselItem = ({ item }: { item: CarouselItem }) => {
     return (
-      <View 
-        style={{ 
-          width: screenWidth - 100,
-          paddingHorizontal: 10,
+      <View
+        style={{
+          width: CARD_WIDTH,
+          height: 360, // Más alto
+          paddingHorizontal: 6,
         }}
       >
         {item.renderContent()}
@@ -105,226 +128,155 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   }).current;
 
   const emergencyCategories = [
-    {
-      id: "cpr",
-      title: "RCP",
-      icon: Heart,
-      color: "#EF4444",
-      bgColor: "#FEE2E2",
-    },
-    {
-      id: "bleeding",
-      title: "Hemorragias",
-      icon: Droplet,
-      color: "#DC2626",
-      bgColor: "#FEE2E2",
-    },
-    {
-      id: "burns",
-      title: "Quemaduras",
-      icon: Flame,
-      color: "#F97316",
-      bgColor: "#FFEDD5",
-    },
-    {
-      id: "fractures",
-      title: "Fracturas",
-      icon: Shield,
-      color: "#3B82F6",
-      bgColor: "#DBEAFE",
-    },
-    {
-      id: "choking",
-      title: "Ahogamiento",
-      icon: Activity,
-      color: "#EF4444",
-      bgColor: "#FEE2E2",
-    },
-    {
-      id: "seizures",
-      title: "Convulsiones",
-      icon: Zap,
-      color: "#F59E0B",
-      bgColor: "#FEF3C7",
-    },
+    { id: "cpr", title: "RCP", icon: Heart, color: "#EF4444", bgColor: "#FEE2E2" },
+    { id: "bleeding", title: "Hemorragias", icon: Droplet, color: "#DC2626", bgColor: "#FEE2E2" },
+    { id: "burns", title: "Quemaduras", icon: Flame, color: "#F97316", bgColor: "#FFEDD5" },
+    { id: "fractures", title: "Fracturas", icon: Shield, color: "#3B82F6", bgColor: "#DBEAFE" },
+    { id: "choking", title: "Ahogamiento", icon: Activity, color: "#EF4444", bgColor: "#FEE2E2" },
+    { id: "seizures", title: "Convulsiones", icon: Zap, color: "#F59E0B", bgColor: "#FEF3C7" },
   ];
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900">
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 120 }}
-      >
-        {/* Header con Logo - REDUCIDO */}
-        <View className="bg-blue-600 dark:bg-slate-800 pt-8 pb-6 px-6 rounded-b-[32px] shadow-sm mb-6">
-          <View className="items-center mb-3">
+      <StatusBar style="light" />
+
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+
+        {/* HEADER */}
+        <View className="bg-[#002e90] pt-14 pb-10 px-6 rounded-b-[36px] shadow-md mb-8">
+          <View className="items-center">
             <Image
               source={LifeAidLogo}
               resizeMode="contain"
-              style={{ width: 120, height: 120 }}
+              style={{ width: 200, height: 30 }}
             />
           </View>
-          <Text className="text-white text-center text-xl font-bold mb-1">
-            FirstAId
-          </Text>
-          <Text className="text-blue-100 dark:text-slate-300 text-center text-xs font-medium">
-            Tu asistente de primeros auxilios
-          </Text>
         </View>
 
-        <View className="px-5">
-          {/* Carousel con SOS, Contacts y AI */}
-          <View className="mb-8">
-            <View className="flex-row items-center mb-4">
-              <View className="bg-red-50 dark:bg-red-900/30 p-2 rounded-xl mr-3">
-                <Phone size={20} color="#EF4444" />
-              </View>
-              <Text className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                Acciones Rápidas
-              </Text>
+        {/* CARRUSEL */}
+        <View className="mb-10">
+          <View className="px-6 flex-row items-center mb-5">
+            <View className="bg-red-100 p-2 rounded-xl mr-3">
+              <Phone size={22} color="#EF4444" />
             </View>
-            
-            <View>
-              <FlatList
-                ref={flatListRef}
-                data={slides}
-                renderItem={renderCarouselItem}
-                keyExtractor={(item) => item.id}
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}
-                snapToAlignment="center"
-                snapToInterval={screenWidth - 80}
-                decelerationRate="fast"
-                scrollEventThrottle={16}
-                disableIntervalMomentum={true}
-                contentContainerStyle={{
-                  paddingHorizontal: 40,
-                }}
-                onViewableItemsChanged={onViewableItemsChanged}
-                viewabilityConfig={{
-                  itemVisiblePercentThreshold: 50,
-                }}
+            <Text className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+              Acciones Rápidas
+            </Text>
+          </View>
+
+          <FlatList
+            ref={flatListRef}
+            data={slides}
+            renderItem={renderCarouselItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            pagingEnabled
+            showsHorizontalScrollIndicator={false}
+            snapToAlignment="start"
+            snapToInterval={CARD_WIDTH}
+            decelerationRate="fast"
+            contentContainerStyle={{
+              paddingHorizontal: SPACING_FOR_CARD_INSET - 6,
+            }}
+            onViewableItemsChanged={onViewableItemsChanged}
+            viewabilityConfig={{ itemVisiblePercentThreshold: 50 }}
+          />
+
+          {/* Indicadores */}
+          <View className="flex-row justify-center mt-4 space-x-3">
+            {slides.map((slide, index) => (
+              <View
+                key={slide.id}
+                className={`h-2 rounded-full ${
+                  index === currentIndex ? "bg-[#002e90] w-8" : "bg-slate-300 w-2"
+                }`}
               />
-              
-              {/* Indicadores de página */}
-              <View className="flex-row justify-center mt-4" style={{ gap: 8 }}>
-                {slides.map((slide, index) => (
-                  <View
-                    key={slide.id}
-                    className={`h-2 rounded-full ${
-                      index === currentIndex ? "bg-blue-600 w-8" : "bg-slate-300 w-2"
-                    }`}
-                  />
-                ))}
-              </View>
-            </View>
-          </View>
-
-          {/* Guías de Primeros Auxilios */}
-          <View className="mb-8">
-            <View className="flex-row items-center mb-4">
-              <View className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-xl mr-3">
-                <Shield size={20} color="#2563EB" />
-              </View>
-              <Text className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                Guías de Emergencia
-              </Text>
-            </View>
-
-            <View className="flex-row flex-wrap -mx-2">
-              {emergencyCategories.map((category) => {
-                const Icon = category.icon;
-                return (
-                  <View key={category.id} className="w-1/2 px-2 mb-4">
-                    <TouchableOpacity
-                      activeOpacity={0.7}
-                      onPress={() =>
-                        navigation?.navigate("GuideDetail", {
-                          guideId: category.id,
-                        })
-                      }
-                      className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
-                      style={{ elevation: 2 }}
-                    >
-                      <View className="p-5 items-center">
-                        <View
-                          className="p-4 rounded-2xl mb-3"
-                          style={{ backgroundColor: category.bgColor }}
-                        >
-                          <Icon size={32} color={category.color} />
-                        </View>
-                        <Text className="font-bold text-sm text-slate-800 dark:text-slate-100 text-center">
-                          {category.title}
-                        </Text>
-                      </View>
-                    </TouchableOpacity>
-                  </View>
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Preparación */}
-          <View className="mb-8">
-            <View className="flex-row items-center mb-4">
-              <View className="bg-green-50 dark:bg-green-900/30 p-2 rounded-xl mr-3">
-                <PackageCheck size={20} color="#10B981" />
-              </View>
-              <Text className="text-xl font-bold text-slate-800 dark:text-slate-100">
-                Preparación
-              </Text>
-            </View>
-
-            <View style={{ gap: 12 }}>
-              {/* Kit de Emergencia */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => navigation?.navigate("Kit")}
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
-                style={{ elevation: 2 }}
-              >
-                <View className="flex-row items-center p-4">
-                  <View className="bg-green-50 dark:bg-green-900/30 p-3 rounded-2xl mr-4">
-                    <Shield size={24} color="#10B981" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-bold text-slate-800 dark:text-slate-100 text-base mb-1">
-                      Kit de Emergencia
-                    </Text>
-                    <Text className="text-slate-500 dark:text-slate-400 text-sm">
-                      Ver contenido recomendado
-                    </Text>
-                  </View>
-                  <Text className="text-slate-400 dark:text-slate-500 text-xl">›</Text>
-                </View>
-              </TouchableOpacity>
-
-              {/* Checklist */}
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => navigation?.navigate("Checklist")}
-                className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden"
-                style={{ elevation: 2 }}
-              >
-                <View className="flex-row items-center p-4">
-                  <View className="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-2xl mr-4">
-                    <PackageCheck size={24} color="#3B82F6" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="font-bold text-slate-800 dark:text-slate-100 text-base mb-1">
-                      Checklist de Preparación
-                    </Text>
-                    <Text className="text-slate-500 dark:text-slate-400 text-sm">
-                      Marca lo que ya tienes listo
-                    </Text>
-                  </View>
-                  <Text className="text-slate-400 dark:text-slate-500 text-xl">›</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
+            ))}
           </View>
         </View>
+
+        {/* GUÍAS */}
+        <View className="mb-10 px-6">
+          <View className="flex-row items-center mb-5">
+            <View className="bg-blue-100 p-2 rounded-xl mr-3">
+              <Shield size={22} color="#002e90" />
+            </View>
+            <Text className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+              Guías
+            </Text>
+          </View>
+
+          <View className="flex-row flex-wrap justify-between">
+            {emergencyCategories.map((category) => {
+              const Icon = category.icon;
+              return (
+                <View key={category.id} style={{ width: "48%", marginBottom: 16 }}>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={() => navigation?.navigate("GuideDetail", { guideId: category.id })}
+                    className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 items-center justify-center h-32"
+                  >
+                    <View className="p-3 rounded-full mb-2" style={{ backgroundColor: category.bgColor }}>
+                      <Icon size={28} color={category.color} />
+                    </View>
+                    <Text className="font-semibold text-slate-700 dark:text-slate-200 text-center">
+                      {category.title}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+
+        {/* PREPARACIÓN */}
+        <View className="px-6 mb-4">
+          <View className="flex-row items-center mb-5">
+            <View className="bg-emerald-100 p-2 rounded-xl mr-3">
+              <PackageCheck size={22} color="#10B981" />
+            </View>
+            <Text className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+              Preparación
+            </Text>
+          </View>
+
+          <View>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation?.navigate("Kit")}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-sl border border-slate-200 dark:border-slate-700 p-4 flex-row items-center mb-4"
+            >
+              <View className="bg-emerald-50 p-3 rounded-2xl mr-4">
+                <Shield size={24} color="#10B981" />
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-lg text-slate-800 dark:text-slate-100">
+                  Kit de Emergencia
+                </Text>
+                <Text className="text-slate-500 text-sm">Elementos esenciales</Text>
+              </View>
+              <Text className="text-slate-300 text-2xl font-light">›</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => navigation?.navigate("Checklist")}
+              className="bg-white dark:bg-slate-800 rounded-2xl shadow-sl border border-slate-200 dark:border-slate-700 p-4 flex-row items-center"
+            >
+              <View className="bg-blue-50 p-3 rounded-2xl mr-4">
+                <PackageCheck size={24} color="#3B82F6" />
+              </View>
+              <View className="flex-1">
+                <Text className="font-bold text-lg text-slate-800 dark:text-slate-100">
+                  Checklist
+                </Text>
+                <Text className="text-slate-500 text-sm">Tu progreso de preparación</Text>
+              </View>
+              <Text className="text-slate-300 text-2xl font-light">›</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
       </ScrollView>
     </View>
   );

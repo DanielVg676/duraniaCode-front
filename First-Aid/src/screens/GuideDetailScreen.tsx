@@ -1,177 +1,180 @@
-import { Badge } from '@/components/ui/Badge';
-import { Button } from '@/components/ui/Button';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { AlertTriangle, ArrowLeft, ArrowRight, Clock, Phone, ArrowLeft as StepLeft } from 'lucide-react-native';
+// src/screens/GuideDetailScreen.tsx
+import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Clock, Phone, Siren } from 'lucide-react-native';
 import React, { useState } from 'react';
-import { Linking, ScrollView, Text, View } from 'react-native';
+import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
 
 interface GuideDetailScreenProps {
-  guideId: string;
-  onBack: () => void;
+  route?: any; // Para recibir parámetros de navegación si usas React Navigation nativo
+  guideId?: string; // Por si lo pasas como prop directa
+  onBack?: () => void;
+  navigation?: any;
 }
 
-const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
+const GuideDetailScreen = ({ route, guideId: propGuideId, onBack, navigation }: GuideDetailScreenProps) => {
+  // Manejo robusto del ID: puede venir por props directas o por route params
+  const id = propGuideId || route?.params?.guideId;
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Static guide data (would be loaded from local storage in real app)
   const guides = {
     cpr: {
       title: 'Reanimación Cardiopulmonar (RCP)',
       urgency: 'critical',
-      duration: '2-3 minutos por ciclo',
-      description: 'Procedimiento de emergencia para mantener el flujo sanguíneo cuando el corazón se detiene.',
+      duration: '2-3 min/ciclo',
+      description: 'Procedimiento para mantener flujo sanguíneo tras paro cardíaco.',
       steps: [
-        { title: 'Verificar respuesta', content: 'Toque los hombros de la persona y grite "¿Está bien?". Si no responde, pida ayuda inmediatamente.', warning: 'Nunca practique RCP en una persona consciente' },
-        { title: 'Posición correcta', content: 'Coloque a la persona boca arriba en una superficie firme. Incline la cabeza hacia atrás y levante el mentón.', warning: null },
-        { title: 'Posición de las manos', content: 'Coloque el talón de una mano en el centro del pecho, entre los pezones. Ponga la otra mano encima, entrelazando los dedos.', warning: 'Mantenga los brazos rectos' },
-        { title: 'Compresiones', content: 'Comprima fuerte y rápido al menos 5 cm de profundidad. Deje que el pecho se eleve completamente entre compresiones.', warning: 'Ritmo: 100-120 compresiones por minuto' },
-        { title: 'Ventilaciones', content: 'Después de 30 compresiones, incline la cabeza, levante el mentón y dé 2 respiraciones boca a boca.', warning: 'Cada respiración debe durar 1 segundo' },
-        { title: 'Continuar ciclos', content: 'Alterne 30 compresiones con 2 respiraciones. No se detenga hasta que llegue ayuda médica.', warning: 'Cambie con otra persona cada 2 minutos si es posible' }
+        { title: 'Verificar respuesta', content: 'Golpee suavemente los hombros y grite "¿Está bien?". Si no responde y no respira, actúe ya.', warning: 'Nunca practique en persona consciente.' },
+        { title: 'Posición de manos', content: 'Coloque el talón de una mano en el centro del pecho (entre pezones). Entrelace la otra mano encima.', warning: 'Brazos rectos, hombros sobre manos.' },
+        { title: 'Compresiones Fuertes', content: 'Comprima fuerte y rápido (5cm de profundidad). Deje que el pecho suba completamente.', warning: 'Ritmo: 100-120 por minuto.' },
+        { title: 'Ventilaciones', content: 'Tras 30 compresiones, incline cabeza, levante mentón y dé 2 respiraciones boca a boca.', warning: '1 segundo por respiración.' },
+        { title: 'Repetir Ciclo', content: 'Mantenga el ciclo 30:2 hasta que llegue la ayuda o la persona reaccione.', warning: 'Si hay desfibrilador (DEA), úselo.' }
       ]
     },
     bleeding: {
       title: 'Control de Hemorragias',
       urgency: 'high',
-      duration: '5-10 minutos',
-      description: 'Técnicas para controlar el sangrado y prevenir la pérdida excesiva de sangre.',
+      duration: '5-10 min',
+      description: 'Técnicas para detener sangrado severo.',
       steps: [
-        { title: 'Seguridad personal', content: 'Use guantes desechables o una barrera protectora. Evite el contacto directo con la sangre.', warning: 'Protéjase de enfermedades transmisibles' },
-        { title: 'Presión directa', content: 'Aplique presión firme y constante directamente sobre la herida con un paño limpio o gasa.', warning: 'No retire el material si se empapa de sangre' },
-        { title: 'Elevación', content: 'Si es posible, eleve la parte lesionada por encima del nivel del corazón mientras mantiene la presión.', warning: 'Solo si no hay fractura sospechosa' },
-        { title: 'Vendaje de presión', content: 'Asegure el material absorbente con vendas, manteniendo presión constante sobre la herida.', warning: 'No ate demasiado fuerte para no cortar circulación' }
+        { title: 'Protección', content: 'Póngase guantes si es posible. No toque la sangre directamente.', warning: 'Evite contacto con fluidos.' },
+        { title: 'Presión Directa', content: 'Aplique presión fuerte directo sobre la herida con un paño o gasa limpia.', warning: 'No quite el paño si se empapa.' },
+        { title: 'Elevación', content: 'Eleve la extremidad herida por encima del nivel del corazón si no hay fractura.', warning: null },
+        { title: 'Vendaje compresivo', content: 'Vende firmemente sobre el apósito para mantener la presión.', warning: 'No corte la circulación total.' }
       ]
     },
     burns: {
-      title: 'Tratamiento de Quemaduras',
+      title: 'Quemaduras',
       urgency: 'medium',
-      duration: '10-15 minutos',
-      description: 'Primeros auxilios para diferentes tipos de quemaduras.',
+      duration: '15-20 min',
+      description: 'Enfriamiento y protección de la piel quemada.',
       steps: [
-        { title: 'Enfriar la quemadura', content: 'Enfríe la quemadura con agua fría (no helada) durante 10-20 minutos.', warning: 'No use hielo ni agua muy fría' },
-        { title: 'Retirar objetos', content: 'Quite anillos, relojes y ropa suelta antes de que aparezca hinchazón.', warning: 'No retire ropa que esté pegada a la piel' },
-        { title: 'Cubrir la quemadura', content: 'Cubra con un paño limpio y húmedo o film transparente.', warning: 'No aplique cremas, mantequilla o remedios caseros' },
-        { title: 'Manejo del dolor', content: 'Administre analgésicos de venta libre si la persona está consciente.', warning: 'Busque atención médica para quemaduras graves' }
+        { title: 'Enfriar zona', content: 'Deje correr agua fría (no helada) sobre la quemadura por 10-20 minutos.', warning: 'NUNCA use hielo directo.' },
+        { title: 'Retirar objetos', content: 'Quite anillos o ropa ajustada antes de que la zona se hinche.', warning: 'No quite ropa pegada a la piel.' },
+        { title: 'Cubrir', content: 'Cubra con gasa estéril o film de cocina limpio (sin apretar).', warning: 'No use algodón (se pega).' },
+        { title: 'No aplicar remedios', content: 'No use mantequilla, pasta dental ni aceites.', warning: 'Solo agua y cobertura limpia.' }
       ]
     },
     fractures: {
-      title: 'Primeros Auxilios para Fracturas',
-      urgency: 'medium',
-      duration: '10-15 minutos',
-      description: 'Cómo inmovilizar y reducir riesgos antes de recibir atención médica.',
-      steps: [
-        { title: 'No mover innecesariamente', content: 'Mantenga inmóvil la extremidad lesionada. Evite mover a la persona salvo que sea absolutamente necesario.', warning: 'Mover puede agravar la fractura' },
-        { title: 'Inmovilizar', content: 'Use tablillas o cualquier objeto rígido para mantener el hueso en posición estable.', warning: 'Inmovilice articulaciones arriba y abajo del hueso fracturado' },
-        { title: 'Aplicar frío', content: 'Coloque compresas frías o hielo envuelto en tela para reducir inflamación.', warning: 'No coloque hielo directamente sobre la piel' },
-        { title: 'Buscar ayuda médica', content: 'Lleve a la persona a urgencias o llame a emergencias lo antes posible.', warning: 'Fracturas abiertas requieren atención inmediata' }
-      ]
+        title: 'Fracturas',
+        urgency: 'medium',
+        duration: 'Inmovilizar',
+        description: 'Manejo de lesiones óseas antes del hospital.',
+        steps: [
+          { title: 'No mover', content: 'No intente acomodar el hueso. Evite mover la extremidad.', warning: 'El movimiento causa más daño.' },
+          { title: 'Inmovilizar', content: 'Fije la extremidad como la encontró usando tablillas o cartón.', warning: 'Incluya las articulaciones cercanas.' },
+          { title: 'Frío local', content: 'Aplique hielo envuelto en tela para bajar inflamación.', warning: 'No hielo directo a la piel.' },
+          { title: 'Traslado', content: 'Acuda a urgencias manteniendo la inmovilización.', warning: null }
+        ]
     },
     choking: {
-      title: 'Maniobra de Heimlich (Ahogamiento)',
+      title: 'Maniobra Heimlich',
       urgency: 'critical',
-      duration: '1-3 minutos',
-      description: 'Acciones rápidas para desobstruir las vías respiratorias.',
+      duration: 'Inmediato',
+      description: 'Desobstrucción de vía aérea por atragantamiento.',
       steps: [
-        { title: 'Verificar obstrucción', content: 'Pregunte si la persona puede toser o hablar. Si no puede, actúe inmediatamente.', warning: 'No golpee la espalda si está tosiendo con fuerza' },
-        { title: 'Posicionarse detrás', content: 'Colóquese detrás de la persona y rodee su cintura con ambos brazos.', warning: null },
-        { title: 'Compresiones abdominales', content: 'Cierre un puño y colóquelo justo arriba del ombligo. Sujete con la otra mano y empuje fuerte hacia adentro y arriba.', warning: 'Repita hasta que salga el objeto o pierda consciencia' },
-        { title: 'Si pierde consciencia', content: 'Lleve a la persona al suelo y comience RCP inmediatamente.', warning: 'Llame a emergencias cuanto antes' }
+        { title: 'Evaluar', content: 'Pregunte "¿Te estás ahogando?". Si no puede hablar ni toser, actúe.', warning: 'Si tose fuerte, anímelo a seguir.' },
+        { title: 'Posición', content: 'Póngase detrás. Rodee la cintura con sus brazos.', warning: null },
+        { title: 'Puño', content: 'Cierre un puño sobre el ombligo (boca del estómago). Sujete con la otra mano.', warning: null },
+        { title: 'Compresiones J', content: 'Empuje fuerte hacia adentro y hacia arriba (forma de J). Repita.', warning: 'Hasta que expulse el objeto.' }
       ]
     },
     seizures: {
-      title: 'Manejo de Convulsiones',
-      urgency: 'high',
-      duration: 'Hasta que termine la convulsión',
-      description: 'Medidas seguras para proteger a la persona durante una crisis epiléptica.',
-      steps: [
-        { title: 'Mantener la calma', content: 'Cronometre la convulsión y permanezca junto a la persona.', warning: 'Convulsiones mayores a 5 minutos requieren ayuda inmediata' },
-        { title: 'Proteger la cabeza', content: 'Coloque algo blando debajo de la cabeza para evitar golpes.', warning: 'No intente sujetar a la persona' },
-        { title: 'Retirar objetos cercanos', content: 'Asegure el área quitando objetos peligrosos o duros alrededor.', warning: null },
-        { title: 'Posición de recuperación', content: 'Una vez termine la convulsión, coloque a la persona de lado para mantener la vía aérea abierta.', warning: 'No ponga nada en la boca durante la convulsión' }
-      ]
+        title: 'Convulsiones',
+        urgency: 'high',
+        duration: 'Variable',
+        description: 'Protección durante crisis epiléptica.',
+        steps: [
+          { title: 'Seguridad', content: 'Aleje objetos duros o filosos. Ponga algo suave bajo la cabeza.', warning: 'No sujete a la persona.' },
+          { title: 'Tiempo', content: 'Mire el reloj. Si dura más de 5 min, llame al 911.', warning: 'No meta nada en la boca.' },
+          { title: 'Pos-crisis', content: 'Cuando termine, ponga a la persona de lado (posición de seguridad).', warning: 'Permita que descanse.' },
+          { title: 'Revisión', content: 'Verifique que respire bien. Acompañe hasta que despierte.', warning: null }
+        ]
     },
-    // Guías agregadas para las existentes en allGuides que faltaban
     poisoning: {
-      title: 'Intoxicaciones y Mordeduras',
-      urgency: 'high',
-      duration: 'Variable',
-      description: 'Primeros auxilios para diferentes tipos de envenenamiento, incluyendo mordeduras y picaduras venenosas.',
-      steps: [
-        { title: 'Evaluar la situación', content: 'Mantenga la calma. Identifique la sustancia tóxica o el animal si es posible. No pruebe el veneno.', warning: 'Llame inmediatamente al centro de toxicología o emergencias.' },
-        { title: 'Para intoxicación ingerida', content: 'No provoque vómito a menos que lo indique un profesional. Si la persona vomita, despeje las vías respiratorias.', warning: 'No dé nada por boca si está inconsciente.' },
-        { title: 'Para mordeduras de serpiente', content: 'Mantenga a la persona calmada. Inmovilice la zona afectada por debajo del nivel del corazón. Retire anillos o prendas constrictivas.', warning: 'No haga incisiones ni succione el veneno.' },
-        { title: 'Para mordeduras de animales', content: 'Lave la herida con jabón y agua durante 3-5 minutos. Cubra con un vendaje limpio.', warning: 'Busque atención médica para posible rabia.' },
-        { title: 'Monitoreo', content: 'Vigile signos vitales y espere ayuda médica.', warning: null }
-      ]
+        title: 'Intoxicaciones',
+        urgency: 'high',
+        duration: 'Variable',
+        description: 'Ingesta de sustancias o picaduras.',
+        steps: [
+          { title: 'Identificar', content: 'Busque el envase o causa. No provoque el vómito salvo indicación médica.', warning: 'Llame a toxicología/911.' },
+          { title: 'Piel/Ojos', content: 'Si es contacto externo, lave con abundante agua 15 min.', warning: 'Quite ropa contaminada.' },
+          { title: 'Vapores', content: 'Saque a la persona al aire fresco inmediatamente.', warning: 'Cuídese usted de no inhalar.' },
+          { title: 'Signos', content: 'Vigile respiración y consciencia mientras llega ayuda.', warning: null }
+        ]
     },
     'insect-bites': {
-      title: 'Picaduras y Reacciones Alérgicas',
-      urgency: 'high',
-      duration: '5-10 minutos inicial',
-      description: 'Tratamiento para picaduras, mordeduras y reacciones alérgicas graves.',
-      steps: [
-        { title: 'Remover el aguijón', content: 'Si hay aguijón (como en abejas), quítelo raspando con una tarjeta, no con pinzas.', warning: null },
-        { title: 'Limpiar el área', content: 'Lave con agua y jabón. Aplique hielo envuelto en tela por 10 minutos.', warning: 'Repita el proceso de hielo.' },
-        { title: 'Para reacciones alérgicas graves (anafilaxia)', content: 'Use autoinyector de epinefrina si disponible. Llame a emergencias.', warning: 'Coloque a la persona acostada con piernas elevadas si no hay vómito.' },
-        { title: 'Monitorear síntomas', content: 'Vigile por hinchazón, dificultad para respirar. Administre antihistamínicos si es leve.', warning: 'Busque ayuda si empeora.' }
-      ]
+        title: 'Picaduras',
+        urgency: 'medium',
+        duration: '10 min',
+        description: 'Reacciones a insectos.',
+        steps: [
+          { title: 'Aguijón', content: 'Si es abeja, raspe el aguijón con una tarjeta. No use pinzas.', warning: null },
+          { title: 'Limpieza', content: 'Lave con agua y jabón. Aplique frío local.', warning: null },
+          { title: 'Alergia Grave', content: 'Si hay hinchazón de cara/boca o dificultad para respirar, es ANFILAXIA.', warning: 'Use Epipen si tiene y llame 911.' },
+          { title: 'Observar', content: 'Mantenga vigilada a la persona por 30 min.', warning: null }
+        ]
     },
     hypothermia: {
-      title: 'Hipotermia',
-      urgency: 'high',
-      duration: 'Hasta recuperación',
-      description: 'Tratamiento para la pérdida peligrosa de temperatura corporal.',
-      steps: [
-        { title: 'Mover a lugar cálido', content: 'Suavemente, mueva a la persona fuera del frío. Proteja del suelo frío.', warning: 'Maneje con cuidado para evitar lesiones.' },
-        { title: 'Quitar ropa mojada', content: 'Con delicadeza quite la ropa mojada y reemplácela con ropa seca o mantas.', warning: null },
-        { title: 'Calentar gradualmente', content: 'Aplique compresas cálidas en cuello, pecho y groin. Ofrezca bebidas calientes si consciente.', warning: 'No use agua caliente ni alcohol. No frote.' },
-        { title: 'Monitorear', content: 'Si no respira, inicie RCP. Llame a emergencias.', warning: 'Para hipotermia severa, no intente recalentar rápidamente.' }
-      ]
+        title: 'Hipotermia',
+        urgency: 'high',
+        duration: 'Gradual',
+        description: 'Baja temperatura corporal peligrosa.',
+        steps: [
+          { title: 'Refugio', content: 'Lleve a lugar seco y protegido del viento.', warning: 'Mueva con suavidad.' },
+          { title: 'Ropa seca', content: 'Quite ropa mojada. Envuelva en mantas secas.', warning: 'Cubra la cabeza.' },
+          { title: 'Calor gradual', content: 'Aplique calor en pecho, cuello e ingles. No frote extremidades.', warning: 'No use agua caliente directa.' },
+          { title: 'Bebidas', content: 'Si está consciente, de bebidas tibias y dulces.', warning: 'No alcohol ni cafeína.' }
+        ]
     },
     shock: {
-      title: 'Estado de Shock',
-      urgency: 'critical',
-      duration: 'Hasta ayuda llegue',
-      description: 'Reconocimiento y tratamiento del shock médico.',
-      steps: [
-        { title: 'Llamar a emergencias', content: 'Llame al 911 inmediatamente.', warning: null },
-        { title: 'Posicionar', content: 'Acueste a la persona boca arriba y eleve las piernas unos 30 cm, si no hay lesión en cabeza o piernas.', warning: 'Si sospecha lesión espinal, no mueva.' },
-        { title: 'Mantener cálido', content: 'Cubra con mantas para mantener temperatura. Afloje ropa apretada.', warning: 'No dé comida ni bebida.' },
-        { title: 'Monitorear', content: 'Revise respiración y pulso. Inicie CPR si necesario. Tranquilice a la persona.', warning: 'Mantenga inmóvil.' }
-      ]
+        title: 'Estado de Shock',
+        urgency: 'critical',
+        duration: 'Urgente',
+        description: 'Falla circulatoria crítica.',
+        steps: [
+          { title: '911', content: 'Llame a emergencias inmediatamente.', warning: 'Es mortal sin tratamiento.' },
+          { title: 'Posición', content: 'Acueste boca arriba. Eleve piernas 30cm (si no hay trauma espinal).', warning: null },
+          { title: 'Temperatura', content: 'Cubra con manta para evitar pérdida de calor.', warning: null },
+          { title: 'No dar nada', content: 'No de comida ni líquidos.', warning: 'Puede broncoaspirar.' }
+        ]
     },
-    // Nuevas guías agregadas para búsquedas sugeridas
     fainting: {
-      title: 'Desmayo',
-      urgency: 'high',
-      duration: '5-10 minutos',
-      description: 'Primeros auxilios para pérdida temporal de conciencia.',
-      steps: [
-        { title: 'Posicionar', content: 'Coloque a la persona acostada boca arriba con piernas elevadas unos 30 cm.', warning: 'Asegúrese que las vías respiratorias estén despejadas.' },
-        { title: 'Verificar signos vitales', content: 'Revise si respira y tiene pulso. Si no, inicie CPR y llame a emergencias.', warning: null },
-        { title: 'Aflojar ropa', content: 'Afloje corbatas, cuellos o ropa apretada. Proporcione aire fresco.', warning: null },
-        { title: 'Recuperación', content: 'Una vez consciente, haga que se siente lentamente. Ofrezca agua si está alerta.', warning: 'No permita levantarse rápidamente. Busque causa subyacente.' }
-      ]
+        title: 'Desmayo',
+        urgency: 'medium',
+        duration: '2-5 min',
+        description: 'Pérdida breve de consciencia.',
+        steps: [
+          { title: 'Posición', content: 'Acueste boca arriba y levante las piernas.', warning: 'Asegure vía aérea.' },
+          { title: 'Aire', content: 'Afloje ropa apretada (cuello, cinturón). Ventile el área.', warning: null },
+          { title: 'Recuperación', content: 'Si despierta, no deje que se levante rápido.', warning: 'Si no despierta en 1 min, llame 911.' },
+          { title: 'Líquidos', content: 'Solo de agua si está totalmente alerta.', warning: null }
+        ]
     },
     heatstroke: {
-      title: 'Golpe de Calor',
-      urgency: 'critical',
-      duration: 'Inmediato',
-      description: 'Emergencia por exposición al calor extremo.',
-      steps: [
-        { title: 'Llamar a emergencias', content: 'Llame al 911 de inmediato.', warning: null },
-        { title: 'Mover a sombra', content: 'Traslade a un lugar fresco y con sombra o aire acondicionado.', warning: null },
-        { title: 'Enfriar el cuerpo', content: 'Quite ropa excesiva. Aplique compresas frías o hielo en cuello, axilas, groin. Rocíe con agua fría y abanique.', warning: 'No dé bebidas si inconsciente.' },
-        { title: 'Monitorear', content: 'Vigile signos vitales. No dé medicamentos para fiebre.', warning: 'Si vomita, gire de lado.' }
-      ]
+        title: 'Golpe de Calor',
+        urgency: 'critical',
+        duration: 'Inmediato',
+        description: 'Exceso de temperatura corporal.',
+        steps: [
+          { title: 'Enfriar YA', content: 'Mueva a sombra. Moje con agua y abanique.', warning: 'Es emergencia médica.' },
+          { title: 'Hielo', content: 'Ponga bolsas de hielo en axilas, ingles y cuello.', warning: null },
+          { title: 'Hidratación', content: 'Si puede beber, de agua a sorbos.', warning: 'Si vomita, detenga.' },
+          { title: 'Vigilancia', content: 'Monitoree temperatura hasta que baje a 38°C.', warning: null }
+        ]
     }
   };
 
-  const currentGuide = guides[guideId as keyof typeof guides];
-  
+  const currentGuide = guides[id as keyof typeof guides];
+  const handleBack = onBack || (() => navigation?.goBack());
+
   if (!currentGuide) {
     return (
-      <View className="flex-1 items-center justify-center">
-        <Text className="text-muted-foreground">Guía no encontrada</Text>
+      <View className="flex-1 items-center justify-center bg-slate-50">
+        <AlertTriangle size={48} color="#94a3b8" />
+        <Text className="text-slate-500 mt-4 text-lg">Guía no encontrada</Text>
+        <TouchableOpacity onPress={handleBack} className="mt-4 bg-blue-600 px-6 py-2 rounded-full">
+            <Text className="text-white font-bold">Volver</Text>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -179,196 +182,163 @@ const GuideDetailScreen = ({ guideId, onBack }: GuideDetailScreenProps) => {
   const currentStepData = currentGuide.steps[currentStep];
   const isLastStep = currentStep === currentGuide.steps.length - 1;
   const isFirstStep = currentStep === 0;
+  const progress = (currentStep + 1) / currentGuide.steps.length;
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case 'critical': return 'bg-emergency text-emergency-foreground';
-      case 'high': return 'bg-warning text-warning-foreground';
-      case 'medium': return 'bg-primary text-primary-foreground';
-      default: return 'bg-muted text-muted-foreground';
-    }
-  };
-
-  const getUrgencyLabel = (urgency: string) => {
-    switch (urgency) {
-      case 'critical': return '🚨 CRÍTICO';
-      case 'high': return '⚠️ ALTO';
-      default: return '🔔 MEDIO';
+      case 'critical': return 'bg-red-500 text-white';
+      case 'high': return 'bg-orange-500 text-white';
+      default: return 'bg-blue-500 text-white';
     }
   };
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900">
-      {/* Header Moderno */}
-      <View className="bg-white dark:bg-slate-800 border-b border-slate-100 dark:border-slate-700 shadow-sm">
-        <View className="pt-4 pb-4 px-5">
-          <View className="flex-row items-center mb-4">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onPress={onBack}
-              className="mr-2 -ml-2"
+      <StatusBar style="light" />
+
+      {/* HEADER CURVO AZUL */}
+      <View className="bg-[#002e90] pt-12 pb-8 px-6 rounded-b-[32px] shadow-lg z-10">
+        {/* Top Bar */}
+        <View className="flex-row items-start justify-between mb-4">
+            <View className="flex-1 pr-4">
+                <TouchableOpacity 
+                    onPress={handleBack}
+                    className="flex-row items-center mb-3 bg-white/20 self-start px-3 py-1.5 rounded-full"
+                >
+                    <ArrowLeft size={16} color="white" />
+                    <Text className="text-white font-medium ml-1 text-sl">Atrás</Text>
+                </TouchableOpacity>
+                <Text className="text-2xl font-bold text-white leading-tight">
+                    {currentGuide.title}
+                </Text>
+            </View>
+            
+            {/* Botón de Emergencia en Header */}
+            <TouchableOpacity 
+                onPress={() => Linking.openURL('tel:911')}
+                className="bg-red-500 p-3 rounded-2xl items-center justify-center shadow-lg shadow-red-900/40"
             >
-              <ArrowLeft size={20} color="#64748B" />
-            </Button>
-            <View className="flex-1">
-              <Text className="text-2xl font-bold text-slate-800 dark:text-slate-100" numberOfLines={2}>
-                {currentGuide.title}
-              </Text>
+                <Phone size={50} color="white" />
+                <Text className="text-white font-bold text-[10px] mt-1">SOS</Text>
+            </TouchableOpacity>
+        </View>
+
+        {/* Info Tags */}
+        <View className="flex-row items-center gap-3">
+            <View className={`px-3 py-1 rounded-lg ${getUrgencyColor(currentGuide.urgency)}`}>
+                <Text className="text-xs font-bold text-white uppercase tracking-wider">
+                    {currentGuide.urgency === 'critical' ? 'Crítico' : currentGuide.urgency === 'high' ? 'Alto' : 'Medio'}
+                </Text>
             </View>
-          </View>
-          
-          <View className="flex-row items-center mb-4" style={{ gap: 8 }}>
-            <Badge className={`${getUrgencyColor(currentGuide.urgency)} px-3 py-1.5 rounded-full`}>
-              <Text className="text-xs font-bold">
-                {getUrgencyLabel(currentGuide.urgency)}
-              </Text>
-            </Badge>
-            <View className="flex-row items-center bg-slate-100 px-3 py-1.5 rounded-full">
-              <Clock size={14} color="#64748B" style={{ marginRight: 4 }} />
-              <Text className="text-xs font-semibold text-slate-600">{currentGuide.duration}</Text>
+            <View className="flex-row items-center bg-white/10 px-3 py-1 rounded-lg border border-white/10">
+                <Clock size={14} color="#bfdbfe" />
+                <Text className="text-blue-100 text-xs ml-2 font-medium">{currentGuide.duration}</Text>
             </View>
-          </View>
-          
-          <Button 
-            className="w-full bg-red-500 h-14 rounded-2xl shadow-lg shadow-red-200 active:scale-95"
-            onPress={() => Linking.openURL('tel:911')}
-          >
-            <View className="flex-row items-center justify-center gap-3">
-              <Phone size={20} color="white" fill="white" />
-              <Text className="text-white font-bold text-base">Llamar Emergencias 911</Text>
-            </View>
-          </Button>
         </View>
       </View>
 
-      {/* Guide Content */}
       <ScrollView 
         className="flex-1" 
-        contentContainerStyle={{ paddingBottom: 140 }}
+        contentContainerStyle={{ paddingBottom: 120, paddingHorizontal: 20, paddingTop: 24 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 py-6">
-          {/* Descripción */}
-          <View className="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 rounded-2xl p-4 mb-6">
-            <Text className="text-slate-700 dark:text-slate-300 leading-relaxed text-sm">
-              {currentGuide.description}
+        {/* Descripción rápida */}
+        <View className="mb-6 flex-row items-start">
+            <View className="bg-blue-100 dark:bg-slate-800 p-2 rounded-xl mr-3 mt-1">
+                <Siren size={20} color="#002e90" />
+            </View>
+            <Text className="text-slate-600 dark:text-slate-300 text-md leading-5 flex-1 mt-1">
+                {currentGuide.description}
             </Text>
-          </View>
-
-          {/* Step Progress */}
-          <View className="mb-6">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-sm font-bold text-slate-800 dark:text-slate-100">
-                Paso {currentStep + 1} de {currentGuide.steps.length}
-              </Text>
-              <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {Math.round(((currentStep + 1) / currentGuide.steps.length) * 100)}% Completado
-              </Text>
-            </View>
-            
-            {/* Barra de progreso */}
-            <View className="h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-              <View 
-                className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full"
-                style={{ 
-                  width: `${((currentStep + 1) / currentGuide.steps.length) * 100}%` 
-                }}
-              />
-            </View>
-            
-            {/* Indicadores de pasos */}
-            <View className="flex-row justify-between mt-3" style={{ gap: 4 }}>
-              {currentGuide.steps.map((step, index) => {
-                let stepColor = 'bg-slate-300';
-                if (index === currentStep) {
-                  stepColor = 'bg-blue-600';
-                } else if (index < currentStep) {
-                  stepColor = 'bg-green-500';
-                }
-                
-                return (
-                  <View
-                    key={`step-${index}-${step.title}`}
-                    className={`flex-1 h-1.5 rounded-full ${stepColor}`}
-                  />
-                );
-              })}
-            </View>
-          </View>
-
-          {/* Current Step Card */}
-          <Card className="mb-6 bg-white dark:bg-slate-800 rounded-3xl shadow-lg border-slate-200 dark:border-slate-700 overflow-hidden">
-            <CardHeader className="pb-3 pt-6 px-6">
-              <View className="flex-row items-center mb-2" style={{ gap: 12 }}>
-                <View className="bg-blue-600 dark:bg-blue-500 rounded-2xl w-12 h-12 items-center justify-center shadow-md shadow-blue-300">
-                  <Text className="text-xl font-bold text-white">
-                    {currentStep + 1}
-                  </Text>
-                </View>
-                <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 flex-1" numberOfLines={2}>
-                  {currentStepData.title}
-                </Text>
-              </View>
-            </CardHeader>
-            <CardContent className="px-6 pb-6">
-              <Text className="text-slate-700 dark:text-slate-300 mb-4 leading-relaxed text-base">
-                {currentStepData.content}
-              </Text>
-              
-              {currentStepData.warning && (
-                <View className="bg-orange-50 dark:bg-orange-900/20 border-2 border-orange-200 dark:border-orange-800 rounded-2xl p-4 flex-row items-start" style={{ gap: 10 }}>
-                  <View className="bg-orange-100 dark:bg-orange-900/30 p-2 rounded-xl">
-                    <AlertTriangle size={20} color="#f97316" />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-xs font-bold text-orange-800 dark:text-orange-400 mb-1">
-                      ⚠️ IMPORTANTE
-                    </Text>
-                    <Text className="text-sm text-orange-900 dark:text-orange-300 leading-relaxed">
-                      {currentStepData.warning}
-                    </Text>
-                  </View>
-                </View>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Navigation Buttons */}
-          <View className="flex-row mb-6" style={{ gap: 12 }}>
-            <Button
-              variant="outline"
-              className={`flex-1 h-14 rounded-2xl border-2 ${
-                isFirstStep ? 'bg-slate-100 border-slate-200' : 'bg-white border-slate-300'
-              }`}
-              onPress={() => setCurrentStep(Math.max(0, currentStep - 1))}
-              disabled={isFirstStep}
-            >
-              <View className="flex-row items-center justify-center gap-2">
-                <StepLeft size={18} color={isFirstStep ? "#CBD5E1" : "#64748B"} />
-                <Text className={`font-bold ${isFirstStep ? 'text-slate-400' : 'text-slate-700'}`}>
-                  Anterior
-                </Text>
-              </View>
-            </Button>
-            
-            <Button
-              className={`flex-1 h-14 rounded-2xl shadow-lg ${
-                isLastStep ? 'bg-green-500 shadow-green-200' : 'bg-blue-600 shadow-blue-200'
-              }`}
-              onPress={() => setCurrentStep(Math.min(currentGuide.steps.length - 1, currentStep + 1))}
-              disabled={isLastStep}
-            >
-              <View className="flex-row items-center justify-center gap-2">
-                <Text className="text-white font-bold text-base">
-                  {isLastStep ? '✓ Completado' : 'Siguiente'}
-                </Text>
-                {!isLastStep && <ArrowRight size={18} color="white" />}
-              </View>
-            </Button>
-          </View>
         </View>
+
+        {/* PROGRESS INDICATOR */}
+        <View className="mb-6">
+            <View className="flex-row justify-between mb-2">
+                <Text className="text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-widest">
+                    Paso {currentStep + 1} / {currentGuide.steps.length}
+                </Text>
+                <Text className="text-slate-400 font-bold text-xs">{Math.round(progress * 100)}%</Text>
+            </View>
+            <View className="h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <View 
+                    style={{ width: `${progress * 100}%` }} 
+                    className="h-full bg-[#002e90] rounded-full"
+                />
+            </View>
+        </View>
+
+        {/* TARJETA DEL PASO PRINCIPAL */}
+        <View className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 mb-6 min-h-[280px]">
+            <View className="flex-row items-center mb-6">
+                <View className="bg-blue-50 dark:bg-blue-900/30 w-12 h-12 rounded-full items-center justify-center mr-4 border border-blue-100 dark:border-blue-800">
+                    <Text className="text-2xl font-extrabold text-[#002e90] dark:text-blue-300">
+                        {currentStep + 1}
+                    </Text>
+                </View>
+                <Text className="text-xl font-bold text-slate-800 dark:text-slate-100 flex-1 leading-6">
+                    {currentStepData.title}
+                </Text>
+            </View>
+
+            <Text className="text-lg text-slate-600 dark:text-slate-300 leading-7 mb-6">
+                {currentStepData.content}
+            </Text>
+
+            {/* Warning Box (Si existe) */}
+            {currentStepData.warning && (
+                <View className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800 rounded-2xl p-4 flex-row items-start">
+                    <AlertTriangle size={50} color="#f97316" style={{ marginTop: 2 }} />
+                    <View className="ml-3 flex-1">
+                        <Text className="text-orange-700 dark:text-orange-400 font-bold text-sm uppercase mb-1">Precaución</Text>
+                        <Text className="text-orange-800 dark:text-orange-200 text-md leading-5">
+                            {currentStepData.warning}
+                        </Text>
+                    </View>
+                </View>
+            )}
+        </View>
+
       </ScrollView>
+
+      {/* CONTROLES INFERIORES */}
+      <View className="absolute bottom-0 left-0 right-0 bg-white dark:bg-slate-900 p-5 border-t border-slate-100 dark:border-slate-800 flex-row gap-4">
+        
+        {/* Botón Anterior */}
+        <TouchableOpacity
+            onPress={() => setCurrentStep(Math.max(0, currentStep - 1))}
+            disabled={isFirstStep}
+            className={`flex-1 py-4 rounded-2xl items-center justify-center border ${
+                isFirstStep 
+                ? 'bg-slate-50 border-slate-200 opacity-50' 
+                : 'bg-white border-slate-300 active:bg-slate-50'
+            }`}
+        >
+            <Text className={`font-bold ${isFirstStep ? 'text-slate-300' : 'text-slate-600'}`}>
+                Anterior
+            </Text>
+        </TouchableOpacity>
+
+        {/* Botón Siguiente / Terminar */}
+        <TouchableOpacity
+            onPress={() => {
+                if (isLastStep) {
+                    handleBack();
+                } else {
+                    setCurrentStep(currentStep + 1);
+                }
+            }}
+            className={`flex-1 py-4 rounded-2xl items-center justify-center flex-row shadow-lg shadow-blue-900/20 ${
+                isLastStep ? 'bg-green-600' : 'bg-[#002e90]'
+            }`}
+        >
+            <Text className="text-white font-bold text-lg mr-2">
+                {isLastStep ? 'Terminar' : 'Siguiente'}
+            </Text>
+            {isLastStep ? <CheckCircle2 size={20} color="white" /> : <ArrowRight size={20} color="white" />}
+        </TouchableOpacity>
+      </View>
+
     </View>
   );
 };

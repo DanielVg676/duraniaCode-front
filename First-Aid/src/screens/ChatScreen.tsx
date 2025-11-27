@@ -1,7 +1,17 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import * as Speech from 'expo-speech';
-import { Bot, Mic, Phone, Send, User, Volume2, VolumeX, X } from 'lucide-react-native'; // Añadido Volume2 y VolumeX
+import {
+  Bot,
+  Mic,
+  Phone,
+  Send,
+  User,
+  Volume2,
+  VolumeX,
+  X,
+  Sparkles
+} from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   FlatList,
@@ -11,6 +21,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withRepeat, 
+  withTiming, 
+  withSequence 
+} from 'react-native-reanimated';
+
 
 interface Message {
   id: string;
@@ -19,11 +39,42 @@ interface Message {
   timestamp: Date;
 }
 
+const StatusDot = ({ isActive }: { isActive: boolean }) => {
+  const opacity = useSharedValue(1);
+
+  // Efecto para disparar la animación cuando isActive cambia
+  React.useEffect(() => {
+    if (isActive) {
+      opacity.value = withRepeat(
+        withSequence(
+          withTiming(0.4, { duration: 500 }),
+          withTiming(1, { duration: 500 })
+        ),
+        -1, // Infinito
+        true // Reverse
+      );
+    } else {
+      opacity.value = withTiming(1); // Reset a opacidad completa
+    }
+  }, [isActive]);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    backgroundColor: isActive ? '#4ade80' : '#22c55e', // green-400 vs green-500
+  }));
+
+  return (
+    <Animated.View 
+      style={[{ width: 8, height: 8, borderRadius: 4 }, animatedStyle]} 
+    />
+  );
+};
+
 const ChatScreen = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
-      content: 'Hola, soy tu asistente FirstAId. 🚑\nEstoy aquí para guiarte. ¿Cuál es la emergencia?',
+      content: 'Hola, soy tu asistente FirstAId. 🚑\nEstoy aquí para guiarte paso a paso. Manten la calma y dime, ¿cuál es la emergencia?',
       sender: 'ai',
       timestamp: new Date()
     }
@@ -36,7 +87,6 @@ const ChatScreen = () => {
   const [ttsEnabled, setTtsEnabled] = useState(true);
   const flatListRef = useRef<FlatList>(null);
 
-  // Leer mensaje de bienvenida
   useEffect(() => {
     setTimeout(() => {
       speak('Hola, soy tu asistente FirstAId. Estoy aquí para guiarte. ¿Cuál es la emergencia?');
@@ -45,55 +95,48 @@ const ChatScreen = () => {
     return () => {
       Speech.stop();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Función para hablar el texto
   const speak = useCallback((text: string) => {
     if (!ttsEnabled) return;
-    
     try {
       Speech.stop();
       setIsSpeaking(true);
       Speech.speak(text, {
         language: 'es-ES',
         pitch: 1,
-        rate: 0.6,
+        rate: 0.9,
         onDone: () => setIsSpeaking(false),
         onStopped: () => setIsSpeaking(false),
         onError: () => setIsSpeaking(false)
       });
     } catch (error) {
-      console.error('Error al hablar:', error);
       setIsSpeaking(false);
     }
   }, [ttsEnabled]);
 
-  // Función para detener el habla
   const stopSpeaking = useCallback(() => {
     try {
       Speech.stop();
       setIsSpeaking(false);
-    } catch (error) {
-      console.error('Error al detener:', error);
-    }
+    } catch (error) {}
   }, []);
 
   const scrollToBottom = useCallback(() => {
     if (flatListRef.current && messages.length > 0) {
-      flatListRef.current.scrollToEnd({ animated: true });
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 200);
     }
-  }, [messages.length]);
+  }, [messages.length, isTyping]);
 
   useEffect(() => {
-    setTimeout(() => scrollToBottom(), 100);
-  }, [messages, scrollToBottom]);
+    scrollToBottom();
+  }, [messages, isTyping, scrollToBottom]);
 
-  // Lógica simulada del micrófono
   const toggleRecording = () => {
     setIsRecording(!isRecording);
     if (!isRecording) {
-      // Simular que escucha y escribe algo
       setTimeout(() => {
         setInputValue("Tengo un corte profundo en el brazo");
         setIsRecording(false);
@@ -101,7 +144,6 @@ const ChatScreen = () => {
     }
   };
 
-  // Simulated AI responses (Misma lógica, solo simplifiqué para el ejemplo visual)
   const getAIResponse = (userMessage: string): string => {
     const message = userMessage.toLowerCase();
     if (message.includes('sangra') || message.includes('herida') || message.includes('corte')) {
@@ -134,38 +176,37 @@ const ChatScreen = () => {
       
       setMessages(prev => [...prev, aiResponse]);
       setIsTyping(false);
-      
-      // Leer la respuesta de la IA en voz alta
       speak(aiResponse.content);
-    }, 1500);
+    }, 2000);
   };
 
   const renderMessage = ({ item: message }: { item: Message }) => {
     const isUser = message.sender === 'user';
     return (
-      <View className={`flex ${isUser ? 'items-end' : 'items-start'} mb-6 px-2`}>
-        <View className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-2 max-w-[85%]`}>
-          
-          {/* Avatar Pequeño */}
-          <View className={`w-8 h-8 rounded-full items-center justify-center mb-1 shadow-sm ${
-            isUser ? 'bg-blue-600' : 'bg-white border border-blue-100'
-          }`}>
-            {isUser ? <User size={14} color="white" /> : <Bot size={16} color="#2563EB" />}
+      <View className={`flex ${isUser ? 'items-end' : 'items-start'} mb-6 px-4`}>
+        <View className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-3 max-w-[90%]`}>
+          <View className={`w-10 h-10 rounded-full items-center justify-center shadow-md ${
+            isUser ? 'bg-indigo-600' : 'bg-white'
+          }`} style={{ elevation: 4 }}>
+            {isUser ? (
+                <User size={20} color="white" />
+            ) : (
+                <Bot size={24} color="#002e90" />
+            )}
           </View>
           
-          {/* Burbuja de Chat */}
-          <View className={`p-4 rounded-2xl shadow-sm ${
+          <View className={`p-4 rounded-3xl shadow-sm ${
             isUser 
-              ? 'bg-blue-600 dark:bg-blue-500 rounded-br-none' 
-              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-bl-none'
-          }`}>
-            <Text className={`text-base leading-6 ${
-              isUser ? 'text-white font-medium' : 'text-slate-700 dark:text-slate-200'
+              ? 'bg-indigo-600 rounded-br-sm' 
+              : 'bg-white rounded-bl-sm border border-slate-100'
+          }`} style={{ elevation: 2 }}>
+            <Text className={`text-[15px] leading-6 ${
+              isUser ? 'text-white font-medium' : 'text-slate-800'
             }`}>
               {message.content}
             </Text>
-            <Text className={`text-[10px] mt-1 text-right ${
-              isUser ? 'text-blue-200 dark:text-blue-300' : 'text-slate-400 dark:text-slate-500'
+            <Text className={`text-[10px] mt-2 text-right ${
+              isUser ? 'text-indigo-200' : 'text-slate-400'
             }`}>
               {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
@@ -175,148 +216,166 @@ const ChatScreen = () => {
     );
   };
 
-  // Calcular el estado del asistente
+  const renderTypingIndicator = () => {
+    if (!isTyping) return null;
+    return (
+        <View className="flex items-start mb-6 px-4">
+            <View className="flex flex-row items-end gap-3">
+                <View className="w-10 h-10 rounded-full items-center justify-center bg-white shadow-md border border-slate-50">
+                    <Bot size={24} color="#002e90" />
+                </View>
+                <View className="bg-white p-4 rounded-3xl rounded-bl-sm border border-slate-100 shadow-sm min-w-[80px]">
+                    <Text className="text-slate-400 font-bold text-xl tracking-widest leading-4">
+                        ...
+                    </Text>
+                </View>
+            </View>
+        </View>
+    );
+  };
+
   const getAssistantStatus = () => {
-    if (isTyping) return 'Analizando...';
+    if (isTyping) return 'Escribiendo...';
     if (isSpeaking) return 'Hablando...';
     return 'En línea';
   };
 
+  // Determinar si hay actividad para mostrar el punto verde animado
+  const isActive = isTyping || isSpeaking;
+
   return (
     <KeyboardAvoidingView 
-      className="flex-1 bg-slate-50 dark:bg-slate-900" // Fondo general suave (gris muy claro)
+      className="flex-1 bg-slate-50 dark:bg-slate-900"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
     >
-      {/* Header Estilizado */}
-      <View className="bg-white dark:bg-slate-800 pt-12 pb-4 px-4 flex-row items-center justify-between border-b border-slate-200 dark:border-slate-700 shadow-sm z-10">
-        <View className="flex-row items-center gap-3">
-          <View className="bg-blue-50 dark:bg-blue-900/30 p-2.5 rounded-xl">
-            <Bot size={24} className="text-blue-600" color="#2563EB" />
-          </View>
-          <View>
-            <Text className="font-bold text-lg text-slate-800 dark:text-slate-100">FirstAId IA</Text>
-            <View className="flex-row items-center gap-1">
-              <View className={`w-2 h-2 rounded-full ${isTyping ? 'bg-blue-500 animate-pulse' : 'bg-green-500'}`} />
-              <Text className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                {getAssistantStatus()}
-              </Text>
-            </View>
-          </View>
-        </View>
-        
-        <View className="flex-row items-center gap-2">
-          {/* Botón TTS Toggle */}
-          <Button 
-            variant="ghost"
-            size="icon"
-            onPress={() => {
-              setTtsEnabled(!ttsEnabled);
-              if (isSpeaking) {
-                stopSpeaking();
-              }
-            }}
-            className={`w-10 h-10 rounded-full ${ttsEnabled ? 'bg-blue-50 dark:bg-blue-900/30' : 'bg-slate-100 dark:bg-slate-700'}`}
-          >
-            {ttsEnabled ? (
-              <Volume2 size={20} color="#2563EB" />
-            ) : (
-              <VolumeX size={20} color="#64748B" />
-            )}
-          </Button>
+      {/* <StatusBar style="light" /> */}
 
-          <Button 
-            variant="destructive" 
-            size="sm"
-            className="bg-red-500 hover:bg-red-600 rounded-full px-4 shadow-sm flex-row gap-2"
-          >
-            <Phone size={16} color="white" fill="white" />
-            <Text className="text-white font-bold ml-1">SOS 911</Text>
-          </Button>
+      {/* HEADER */}
+      <View className="bg-[#002e90] pt-12 pb-6 px-5 rounded-b-[32px] shadow-lg z-10">
+        <View className="flex-row items-center justify-between">
+            <View className="flex-row items-center gap-3">
+                <View className="bg-white/10 p-2.5 rounded-2xl border border-white/10">
+                    <Sparkles size={24} color="#60a5fa" fill="#60a5fa" /> 
+                </View>
+                <View>
+                    <Text className="font-bold text-xl text-white tracking-tight">FirstAId IA</Text>
+                    <View className="flex-row items-center gap-1.5 mt-0.5">
+                        <StatusDot isActive={isActive} />
+                        <Text className="text-xs text-blue-100 font-medium opacity-90">
+                            {getAssistantStatus()}
+                        </Text>
+                    </View>
+                </View>
+            </View>
+            
+            <View className="flex-row items-center gap-2">
+                <TouchableOpacity 
+                    onPress={() => {
+                        setTtsEnabled(!ttsEnabled);
+                        if (isSpeaking) stopSpeaking();
+                    }}
+                    className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/5"
+                >
+                    {ttsEnabled ? <Volume2 size={18} color="white" /> : <VolumeX size={18} color="#94a3b8" />}
+                </TouchableOpacity>
+
+                <TouchableOpacity 
+                    className="bg-red-500 w-10 h-10 rounded-full items-center justify-center shadow-lg shadow-red-900/40"
+                    activeOpacity={0.8}
+                >
+                    <Phone size={18} color="white" fill="white" />
+                </TouchableOpacity>
+            </View>
         </View>
       </View>
 
-      {/* Área de Mensajes */}
+      {/* LISTA DE MENSAJES */}
       <FlatList
         ref={flatListRef}
         data={messages}
         renderItem={renderMessage}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ padding: 16, paddingBottom: 140 }}
+        ListFooterComponent={renderTypingIndicator}
+        contentContainerStyle={{ paddingVertical: 20 }}
         showsVerticalScrollIndicator={false}
       />
 
-      {/* Sugerencias Rápidas (Chips) */}
-      {!isTyping && (
-        <View className="pl-4 py-3" style={{ backgroundColor: 'transparent' }}>
-           <FlatList 
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            data={['Desmayo', 'Sangrado', 'Quemadura', 'Fractura', 'RCP']}
-            keyExtractor={(item) => item}
-            renderItem={({item}) => (
-              <TouchableOpacity
-                onPress={() => setInputValue(item)}
-                className="mr-2 bg-white dark:bg-slate-800 border border-blue-100 dark:border-slate-700 px-5 py-2.5 rounded-full shadow-sm"
-              >
-                <Text className="text-blue-600 dark:text-blue-400 text-sm font-semibold">{item}</Text>
-              </TouchableOpacity>
-            )}
-          />
+      {/* FOOTER (INPUT AREA) */}
+      <View className="bg-white dark:bg-slate-800 pb-32 pt-2 border-t border-slate-50 dark:border-slate-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-[30px]">
+        
+        {!isTyping && (
+            <View className="mb-3 px-2">
+                <FlatList 
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    data={['Sangrado fuerte', 'Quemadura', 'RCP', 'Me siento mareado', 'Fractura']}
+                    keyExtractor={(item) => item}
+                    contentContainerStyle={{ paddingHorizontal: 16 }}
+                    renderItem={({item}) => (
+                        <TouchableOpacity
+                            onPress={() => setInputValue(item)}
+                            className="mr-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2 rounded-2xl active:bg-blue-50"
+                        >
+                            <Text className="text-slate-600 dark:text-slate-300 text-xs font-semibold">{item}</Text>
+                        </TouchableOpacity>
+                    )}
+                />
+            </View>
+        )}
+
+        <View className="px-4 flex-row items-center gap-3">
+            <TouchableOpacity
+                onPress={toggleRecording}
+                className={`h-12 w-12 rounded-full items-center justify-center transition-all ${
+                    isRecording 
+                    ? 'bg-red-500 shadow-red-200 shadow-lg scale-110' 
+                    : 'bg-slate-100 dark:bg-slate-700'
+                }`}
+            >
+                {isRecording ? (
+                    <View className="w-4 h-4 bg-white rounded-sm animate-pulse" />
+                ) : (
+                    <Mic size={22} className="text-slate-600 dark:text-slate-400" color="#64748B" />
+                )}
+            </TouchableOpacity>
+
+            <View className="flex-1 h-12 text-slate-700 dark:text-slate-200 text-base h-full bg-transparent border-0 p-0">
+                <Input
+                    value={inputValue}
+                    onChangeText={setInputValue}
+                    placeholder={isRecording ? "Escuchando..." : "Escribe aquí..."}
+                    placeholderTextColor="#94A3B8"
+                    editable={!isTyping && !isRecording}
+                    onSubmitEditing={sendMessage}
+                    className="flex-1 h-12 text-slate-700 dark:text-slate-200 text-base h-full bg-transparent border-0 p-0"
+                />
+            </View>
+            
+            <TouchableOpacity 
+                onPress={sendMessage}
+                disabled={!inputValue.trim() || isTyping}
+                className={`h-12 w-12 rounded-full items-center justify-center transition-all ${
+                    inputValue.trim() 
+                    ? 'bg-[#002e90] shadow-lg shadow-blue-200 scale-100' 
+                    : 'bg-slate-200 dark:bg-slate-700 scale-95'
+                }`}
+            >
+                <Send size={20} color={inputValue.trim() ? "white" : "#94A3B8"} style={{ marginLeft: 2 }} />
+            </TouchableOpacity>
         </View>
-      )}
 
-      {/* Input Area */}
-      <View className="bg-white dark:bg-slate-800 px-4 py-3 border-t border-slate-100 dark:border-slate-700 flex-row items-end gap-2 pb-32">
-        
-        {/* Botón de Micrófono */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onPress={toggleRecording}
-          className={`h-12 w-12 rounded-full ${
-            isRecording ? 'bg-red-50 dark:bg-red-900/30' : 'bg-slate-100 dark:bg-slate-700'
-          }`}
-        >
-          {isRecording ? (
-            <X size={22} className="text-red-500" color="#EF4444" />
-          ) : (
-            <Mic size={22} className="text-slate-600" color="#475569" />
-          )}
-        </Button>
-
-        {/* Campo de Texto */}
-        <Input
-          value={inputValue}
-          onChangeText={setInputValue}
-          placeholder={isRecording ? "Escuchando..." : "Describe la emergencia..."}
-          placeholderTextColor="#94A3B8"
-          editable={!isTyping && !isRecording}
-          onSubmitEditing={sendMessage}
-          containerClassName="flex-1 bg-slate-100 dark:bg-slate-700 rounded-3xl px-4 border-0"
-          className="text-slate-700 dark:text-slate-200 text-base"
-        />
-        
-        {/* Botón Enviar */}
-        <Button 
-          onPress={sendMessage}
-          disabled={!inputValue.trim() || isTyping}
-          className={`h-12 w-12 rounded-full items-center justify-center ${
-            inputValue.trim() ? 'bg-blue-600 shadow-lg shadow-blue-200' : 'bg-slate-200'
-          }`}
-        >
-          <Send size={20} color={inputValue.trim() ? "white" : "#94A3B8"} />
-        </Button>
+        {isRecording && (
+            <View className="absolute -top-12 left-0 right-0 items-center">
+                <View className="bg-red-500 px-5 py-2 rounded-full shadow-lg flex-row items-center gap-2">
+                    <View className="w-2 h-2 bg-white rounded-full animate-bounce" />
+                    <View className="w-2 h-2 bg-white rounded-full animate-bounce delay-75" />
+                    <View className="w-2 h-2 bg-white rounded-full animate-bounce delay-150" />
+                    <Text className="text-white font-bold text-xs ml-1">GRABANDO</Text>
+                </View>
+            </View>
+        )}
       </View>
-
-      {/* Overlay visual para cuando graba (Opcional) */}
-      {isRecording && (
-        <View className="absolute bottom-24 left-0 right-0 items-center justify-center">
-          <View className="bg-red-500 px-4 py-2 rounded-full shadow-lg flex-row items-center gap-2 animate-pulse">
-            <View className="w-2 h-2 bg-white rounded-full" />
-            <Text className="text-white font-bold text-xs">GRABANDO AUDIO...</Text>
-          </View>
-        </View>
-      )}
 
     </KeyboardAvoidingView>
   );

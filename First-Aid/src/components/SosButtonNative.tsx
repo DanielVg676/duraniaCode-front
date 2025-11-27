@@ -91,77 +91,90 @@ export default function SosButton({ contacts, style }: SosButtonProps) {
     </View>
   );
 }
-
 const stylesButton = StyleSheet.create({
   container: {
-    width: 140,
-    height: 140,
+    width: 180,
+    height: 180,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  // Capa de sombra profunda debajo
   shadowLayer: {
     position: 'absolute',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
-    backgroundColor: '#DC2626',
-    top: 6,
-    elevation: 4,
-    shadowColor: '#EF4444',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.4,
-    shadowRadius: 10,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    backgroundColor: '#b91c1c',
+    top: 10,
+    elevation: 8,
+    shadowColor: '#b91c1c',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.45,
+    shadowRadius: 18,
   },
+
+  // Botón principal con leve gradiente
   button: {
-    backgroundColor: '#EF4444',
-    width: 140,
-    height: 140,
-    borderRadius: 70,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 8,
-    shadowColor: '#EF4444',
+
+    backgroundColor: '#dc2626',
+    borderWidth: 6,
+    borderColor: '#fecaca',
+
+    shadowColor: '#dc2626',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-    borderWidth: 4,
-    borderColor: '#FEE2E2',
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
   },
+
+  // Efecto al presionarlo (simula un botón físico)
   buttonPressed: {
-    transform: [{ translateY: 3 }],
-    elevation: 4,
+    transform: [{ scale: 0.97 }],
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
   },
+
+  // Sombra interna para profundidad
   innerShadow: {
     position: 'absolute',
     bottom: 0,
-    width: 140,
-    height: 70,
-    borderBottomLeftRadius: 70,
-    borderBottomRightRadius: 70,
-    backgroundColor: 'rgba(0, 0, 0, 0.1)',
+    width: 180,
+    height: 90,
+    borderBottomLeftRadius: 90,
+    borderBottomRightRadius: 90,
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
   },
+
+  // Contenido centrado
   content: {
-    zIndex: 2,
+    zIndex: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
+
+  // Brillo superior
   highlight: {
     position: 'absolute',
-    top: 12,
-    width: 110,
-    height: 55,
-    borderRadius: 55,
-    backgroundColor: 'rgba(255, 255, 255, 0.25)',
+    width: 140,
+    height: 70,
+    top: 16,
+    borderRadius: 70,
+    backgroundColor: 'rgba(255, 255, 255, 0.22)',
   },
+
+  // Texto del botón
   text: {
-    color: 'white',
-    fontSize: 32,
-    fontWeight: 'bold',
-    textShadowColor: 'rgba(0, 0, 0, 0.3)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 3,
-    letterSpacing: 2,
+    color: "white",
+    fontSize: 44,
+    fontWeight: "900",
+    letterSpacing: 3,
+    textShadowColor: "rgba(0,0,0,0.35)",
+    textShadowOffset: { width: 0, height: 3 },
+    textShadowRadius: 6,
   }
 });

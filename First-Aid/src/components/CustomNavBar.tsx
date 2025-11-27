@@ -23,9 +23,9 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
   const colorScheme = useColorScheme();
   const isDark = isDarkMode || colorScheme === 'dark';
 
-  const PRIMARY_COLOR = isDark ? "#1e293b" : "#2563EB"; // Azul o slate oscuro
+  const PRIMARY_COLOR = isDark ? "#1e293b" : "#002e90"; 
   const SECONDARY_COLOR = "#fff";
-  const ICON_ACTIVE_COLOR = isDark ? "#60a5fa" : "#2563EB";
+  const ICON_ACTIVE_COLOR = isDark ? "#60a5fa" : "#002e90";
   const ICON_INACTIVE_COLOR = isDark ? "#94a3b8" : "#fff";
   
   return (
@@ -67,15 +67,7 @@ const CustomNavBar: React.FC<BottomTabBarProps> = ({
               route.name,
               isFocused ? ICON_ACTIVE_COLOR : ICON_INACTIVE_COLOR
             )}
-            {isFocused && (
-              <Animated.Text
-                entering={FadeIn.duration(200)}
-                exiting={FadeOut.duration(200)}
-                style={[styles.text, { color: ICON_ACTIVE_COLOR }]}
-              >
-                {label as string}
-              </Animated.Text>
-            )}
+
           </AnimatedTouchableOpacity>
         );
       })}
@@ -106,29 +98,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: "90%",
     alignSelf: "center",
-    bottom: 10,
+    bottom: 20,
     borderRadius: 40,
     paddingHorizontal: 12,
     paddingVertical: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
+    shadowColor: "#002e90",
+    shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.3,
-    shadowRadius: 5,
+    shadowRadius: 8,
     elevation: 8,
   },
   tabItem: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    height: 36,
-    paddingHorizontal: 13,
+    height: 44,
+    width: 44,
     borderRadius: 30,
     flex: 1,
-  },
-  text: {
-    marginLeft: 8,
-    fontWeight: "600",
-    fontSize: 13,
   },
 });
 
