@@ -18,6 +18,13 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# Android build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+*.iml
+.idea/
+
 # Metro
 .metro-health-check*
 
@@ -39,5 +46,4 @@ yarn-error.*
 app-example
 
 # generated native folders
-/ios
-/android
+/ios   # <- OK mientras no tengas código nativo propio en iOS
