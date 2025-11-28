@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Contacts from 'expo-contacts';
 // Agregamos el icono X para el botón de cerrar
-import { X, UserPlus } from 'lucide-react-native'; 
+import { X, UserPlus } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import { Alert, FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View, SafeAreaView } from 'react-native';
 
@@ -20,7 +20,7 @@ export default function ContactManager({ onContactsChange }: Props) {
   const [savedContacts, setSavedContacts] = useState<SavedContact[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [phoneContacts, setPhoneContacts] = useState<Contacts.Contact[]>([]);
-  
+
   // Nuevo estado para la búsqueda
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -52,9 +52,20 @@ export default function ContactManager({ onContactsChange }: Props) {
   };
 
   const updateParent = (contacts: SavedContact[]) => {
-    const numbers = contacts.map(c => c.phone);
+    const numbers = contacts
+      .map(c => c.phone)
+      .map(phone =>
+        phone
+          .replace(/[^\d+]/g, "")      // deja solo dígitos y +
+          .replace(/^00/, "+")         // convierte 00xx a +xx si fuera el caso
+      )
+      .filter(p => p.length >= 8);      // filtra cosas demasiado cortas
+
+    console.log("📞 Números normalizados para SOS:", numbers);
     onContactsChange(numbers);
   };
+
+
 
   const openContactPicker = async () => {
     const { status } = await Contacts.requestPermissionsAsync();
@@ -87,10 +98,10 @@ export default function ContactManager({ onContactsChange }: Props) {
 
   const selectContact = (contact: Contacts.Contact) => {
     if (!contact.phoneNumbers || contact.phoneNumbers.length === 0) return;
-    
+
     const phoneNumber = contact.phoneNumbers[0]?.number ?? '';
     const exists = savedContacts.some(c => c.phone === phoneNumber);
-    if(exists) {
+    if (exists) {
       Alert.alert("Ya agregado", "Este contacto ya está en tu lista de emergencia.");
       return;
     }
@@ -121,7 +132,7 @@ export default function ContactManager({ onContactsChange }: Props) {
   return (
     <View style={styles.container}>
 
-      
+
       {savedContacts.length === 0 && (
         <Text style={styles.emptyText}>No tienes contactos guardados aún.</Text>
       )}
@@ -132,7 +143,7 @@ export default function ContactManager({ onContactsChange }: Props) {
             <Text style={styles.contactName}>{contact.name}</Text>
             <Text style={styles.contactPhone}>{contact.phone}</Text>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             onPress={() => removeContact(contact.id)}
             style={styles.deleteButton}
           >
@@ -141,7 +152,7 @@ export default function ContactManager({ onContactsChange }: Props) {
         </View>
       ))}
 
-      <TouchableOpacity 
+      <TouchableOpacity
         onPress={openContactPicker}
         style={styles.addButton} // Estilo actualizado con #002e90
         activeOpacity={0.8}
@@ -153,18 +164,18 @@ export default function ContactManager({ onContactsChange }: Props) {
       <Modal visible={modalVisible} animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <SafeAreaView style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
           <View style={styles.modalContainer}>
-            
+
             {/* Header del Modal con Botón de Cerrar (X) */}
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Seleccionar</Text>
-              <TouchableOpacity 
+              <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.closeIconButton}
               >
                 <X size={24} color="#64748B" />
               </TouchableOpacity>
             </View>
-            
+
             <TextInput
               style={styles.searchInput}
               placeholder="Buscar por nombre..."
@@ -190,7 +201,7 @@ export default function ContactManager({ onContactsChange }: Props) {
             />
 
             {/* Botón Inferior de Cancelar (Redundancia para mejor UX) */}
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() => setModalVisible(false)}
               style={styles.cancelButton}
               activeOpacity={0.8}
@@ -205,14 +216,14 @@ export default function ContactManager({ onContactsChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    width: '100%', 
+  container: {
+    width: '100%',
     padding: 0,
     backgroundColor: 'transparent',
   },
-  title: { 
-    fontSize: 18, 
-    fontWeight: '700', 
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
     marginBottom: 16,
     color: '#1E293B',
     textAlign: 'center'
@@ -223,22 +234,22 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     fontStyle: 'italic'
   },
-  contactRow: { 
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    marginBottom: 10, 
-    padding: 16, 
-    backgroundColor: '#F8FAFC', 
+  contactRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+    padding: 16,
+    backgroundColor: '#F8FAFC',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    alignItems: 'center' 
+    alignItems: 'center'
   },
   contactInfo: {
     flex: 1,
   },
-  contactName: { 
-    fontSize: 15, 
+  contactName: {
+    fontSize: 15,
     fontWeight: '600',
     color: '#334155',
     marginBottom: 2
@@ -252,7 +263,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FEF2F2',
     borderRadius: 8,
   },
-  
+
   // Botón Principal de Agregar (ACTUALIZADO)
   addButton: {
     backgroundColor: '#002e90', // TU NUEVO COLOR
@@ -271,17 +282,17 @@ const styles = StyleSheet.create({
     shadowRadius: 4.65,
     elevation: 8,
   },
-  addButtonText: { 
-    color: 'white', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  addButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 16
   },
 
   // --- Estilos del Modal ---
-  modalContainer: { 
-    flex: 1, 
+  modalContainer: {
+    flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 10, 
+    paddingTop: 10,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -290,9 +301,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     marginTop: 10,
   },
-  modalTitle: { 
-    fontSize: 24, 
-    fontWeight: 'bold', 
+  modalTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
     color: '#1E293B'
   },
   closeIconButton: {
@@ -311,8 +322,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#1E293B'
   },
-  modalItem: { 
-    padding: 16, 
+  modalItem: {
+    padding: 16,
     backgroundColor: 'white',
     marginBottom: 10,
     borderRadius: 16,
@@ -327,13 +338,13 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 2,
   },
-  modalItemName: { 
-    fontWeight: '600', 
+  modalItemName: {
+    fontWeight: '600',
     fontSize: 16,
     color: '#1E293B'
   },
-  modalItemPhone: { 
-    color: '#64748B', 
+  modalItemPhone: {
+    color: '#64748B',
     marginTop: 2,
     fontSize: 14
   },
@@ -352,9 +363,9 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 10
   },
-  cancelButtonText: { 
-    color: '#EF4444', 
-    fontWeight: 'bold', 
-    fontSize: 16 
+  cancelButtonText: {
+    color: '#EF4444',
+    fontWeight: 'bold',
+    fontSize: 16
   }
 });

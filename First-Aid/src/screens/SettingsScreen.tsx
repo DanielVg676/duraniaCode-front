@@ -18,8 +18,13 @@ import {
   Smartphone,
   Users
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import {
+  isMonitoringActive,
+  startCrashMonitoring,
+  stopCrashMonitoring,
+} from '../native/crash';
 import { StatusBar } from 'expo-status-bar';
 
 const SettingsScreen = () => {
@@ -28,6 +33,35 @@ const SettingsScreen = () => {
   const [offlineMode, setOfflineMode] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isMonitoring, setIsMonitoring] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const active = await isMonitoringActive();
+        setIsMonitoring(active);
+      } catch (error) {
+        console.error("Error checking monitoring status:", error);
+      }
+    };
+    checkStatus();
+  }, []);
+
+  const toggleMonitoring = async () => {
+    const newValue = !isMonitoring;
+    setIsMonitoring(newValue);
+    try {
+      if (newValue) {
+        await startCrashMonitoring();
+      } else {
+        await stopCrashMonitoring();
+      }
+    } catch (error) {
+      console.error("Failed to toggle crash monitoring:", error);
+      // Revertir el estado si hay un error
+      setIsMonitoring(!newValue);
+    }
+  };
 
   // Configuración de secciones
   const generalSettings = [
@@ -77,6 +111,15 @@ const SettingsScreen = () => {
       type: 'toggle',
       value: notificationsEnabled,
       onToggle: () => setNotificationsEnabled(!notificationsEnabled)
+    },
+    {
+      id: 'crash_monitoring',
+      title: 'Monitoreo de Accidentes',
+      description: 'Detectar choques y giros bruscos',
+      icon: Shield,
+      type: 'toggle',
+      value: isMonitoring,
+      onToggle: toggleMonitoring
     }
   ];
 

@@ -9,7 +9,10 @@ import com.facebook.react.uimanager.ViewManager
 class CrashPackage : ReactPackage {
     override fun createNativeModules(reactContext: ReactApplicationContext)
         : List<NativeModule> {
-        return listOf(CrashModule(reactContext))
+        return listOf(
+            CrashModule(reactContext),
+            SmsModule(reactContext)   
+        )
     }
 
     override fun createViewManagers(reactContext: ReactApplicationContext)

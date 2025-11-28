@@ -126,6 +126,18 @@ android {
             def enableLegacyPackaging = findProperty('expo.useLegacyPackaging') ?: 'false'
             useLegacyPackaging enableLegacyPackaging.toBoolean()
         }
+        // Pick first version for all conflicting resources from androidx vs support libraries
+        pickFirst 'META-INF/androidx.appcompat_appcompat.version'
+        pickFirst 'META-INF/androidx.core_core.version'
+        pickFirst 'META-INF/androidx.versionedparcelable_versionedparcelable.version'
+        pickFirst 'META-INF/androidx.cursoradapter_cursoradapter.version'
+        pickFirst 'META-INF/androidx.drawerlayout_drawerlayout.version'
+        pickFirst 'META-INF/androidx.fragment_fragment.version'
+        pickFirst 'META-INF/androidx.legacy_legacy-support-core-ui.version'
+        pickFirst 'META-INF/androidx.legacy_legacy-support-core-utils.version'
+        pickFirst 'META-INF/androidx.legacy_legacy-support-v4.version'
+        pickFirst 'META-INF/androidx.media_media.version'
+        pickFirst 'META-INF/androidx.viewpager_viewpager.version'
     }
     androidResources {
         ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~'
@@ -179,4 +191,9 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+}
+
+// Exclude all old Android Support libraries to use only AndroidX
+configurations.all {
+    exclude group: 'com.android.support'
 }
