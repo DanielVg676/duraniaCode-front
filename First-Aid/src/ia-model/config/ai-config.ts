@@ -10,6 +10,7 @@ export const APP_CONFIG = {
     THREADS: 4,              // Número de threads para inferencia
     MODEL_NAME: 'Phi-2-Chat',
     MODEL_FILENAME: 'phi-2.Q4_K_M.gguf',
+    MODEL_URL: 'https://huggingface.co/TheBloke/phi-2-GGUF/resolve/main/phi-2.Q4_K_M.gguf',
     MODEL_SIZE: '2.5 GB',
   },
   
@@ -17,6 +18,7 @@ export const APP_CONFIG = {
   WHISPER: {
     ENABLED: true,
     MODEL_FILENAME: 'ggml-base.bin',
+    MODEL_URL: 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin',
     MODEL_SIZE: '150 MB',
     LANGUAGE: 'es',
   },

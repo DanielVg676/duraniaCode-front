@@ -11,7 +11,8 @@ import {
   Volume2,
   VolumeX,
   X,
-  Sparkles
+  Sparkles,
+  Download
 } from 'lucide-react-native';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
@@ -21,7 +22,8 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
@@ -39,6 +41,7 @@ import {
   classifyEmergency,
   initializeLLM
 } from '../ia-model';
+import { checkModelsExistence, downloadLLMModel, downloadWhisperModel, DownloadProgress } from '../ia-model/services/model-downloader';
 
 interface Message {
   id: string;
@@ -97,29 +100,75 @@ const ChatScreen = () => {
   const [llmInitialized, setLlmInitialized] = useState(false);
   const [emergencyType, setEmergencyType] = useState<string>("otro");
 
+  // Estados de descarga
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [downloadStatus, setDownloadStatus] = useState('');
+
   const flatListRef = useRef<FlatList>(null);
 
-  // Inicializar LLM
+  // Verificar y descargar modelos
   useEffect(() => {
-    initializeLLM().then(success => {
-      setLlmInitialized(success);
-      if (success) {
-        console.log('✅ LLM cargado y listo en ChatScreen');
+    const checkAndDownload = async () => {
+      const { llm, whisper } = await checkModelsExistence();
+
+      if (!llm || !whisper) {
+        setIsDownloading(true);
+        setDownloadStatus('Descargando modelos de IA...');
+
+        if (!whisper) {
+          setDownloadStatus('Descargando modelo de voz (150MB)...');
+          await downloadWhisperModel((p) => setDownloadProgress(p.progress * 0.5)); // 50%
+        }
+
+        if (!llm) {
+          setDownloadStatus('Descargando modelo de chat (2.5GB)... esto puede tardar.');
+          await downloadLLMModel((p) => setDownloadProgress(0.5 + (p.progress * 0.5))); // 50-100%
+        }
+
+        setDownloadStatus('Inicializando...');
+        setIsDownloading(false);
       }
-    });
+
+      // Inicializar LLM después de asegurar que existen
+      initializeLLM().then(success => {
+        setLlmInitialized(success);
+        if (success) {
+          console.log('✅ LLM cargado y listo en ChatScreen');
+        }
+      });
+    };
+
+    checkAndDownload();
   }, []);
 
   // Permisos de Audio
   useEffect(() => {
     (async () => {
-      const { status } = await Audio.requestPermissionsAsync();
-      if (status !== "granted") {
-        Alert.alert("Permisos necesarios", "Necesitamos acceso al micrófono para emergencias.");
+      try {
+        const { status } = await Audio.requestPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert(
+            "Permisos necesarios",
+            "Necesitamos acceso al micrófono para escuchar tu emergencia. Por favor habilítalo en la configuración.",
+            [{ text: "OK" }]
+          );
+        }
+      } catch (e) {
+        console.error("Error solicitando permisos:", e);
       }
     })();
   }, []);
 
   useEffect(() => {
+    // Configurar audio mode una sola vez al montar
+    Audio.setAudioModeAsync({
+      allowsRecordingIOS: true,
+      playsInSilentModeIOS: true,
+      staysActiveInBackground: true,
+      shouldDuckAndroid: true,
+    }).catch(err => console.error("Error configurando audio mode:", err));
+
     setTimeout(() => {
       speak('Hola, soy tu asistente FirstAId. Estoy aquí para guiarte. ¿Cuál es la emergencia?');
     }, 1000);
@@ -168,10 +217,25 @@ const ChatScreen = () => {
 
   // Lógica de Grabación
   const startRecording = async () => {
+    if (isDownloading) {
+      Alert.alert("Espere", "Estamos descargando los modelos de IA necesarios.");
+      return;
+    }
+
     try {
+      const permission = await Audio.getPermissionsAsync();
+      if (permission.status !== 'granted') {
+        const { status } = await Audio.requestPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert("Sin permiso", "No podemos grabar audio sin permiso de micrófono.");
+          return;
+        }
+      }
+
       stopSpeaking();
       setIsRecording(true);
 
+      // Asegurar configuración de audio antes de grabar
       await Audio.setAudioModeAsync({
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
@@ -184,6 +248,7 @@ const ChatScreen = () => {
       setRecording(newRecording);
     } catch (err) {
       console.error("Error al iniciar grabación:", err);
+      Alert.alert("Error", "No se pudo iniciar la grabación.");
       setIsRecording(false);
     }
   };
@@ -200,9 +265,12 @@ const ChatScreen = () => {
       setRecording(null);
 
       if (uri) {
+        // Pequeño delay para asegurar que el archivo se cerró bien
+        await new Promise(resolve => setTimeout(resolve, 100));
+
         const transcription = await transcribeAudioOffline(uri);
 
-        if (!transcription || transcription.includes("[No se") || transcription.includes("[Audio capturado")) {
+        if (!transcription || transcription.includes("[Error") || transcription.includes("[No se")) {
           Alert.alert("Audio no claro", "No se pudo entender el audio. Intenta de nuevo.");
           setIsTyping(false);
           return;
@@ -220,6 +288,7 @@ const ChatScreen = () => {
       }
     } catch (err) {
       console.error("Error al detener grabación:", err);
+      Alert.alert("Error", "Hubo un problema procesando el audio.");
       setIsTyping(false);
       setIsRecording(false);
     }
@@ -333,13 +402,14 @@ const ChatScreen = () => {
   };
 
   const getAssistantStatus = () => {
+    if (isDownloading) return `Descargando IA (${Math.round(downloadProgress * 100)}%)`;
     if (isTyping) return 'Escribiendo...';
     if (isSpeaking) return 'Hablando...';
     return 'En línea';
   };
 
   // Determinar si hay actividad para mostrar el punto verde animado
-  const isActive = isTyping || isSpeaking;
+  const isActive = isTyping || isSpeaking || isDownloading;
 
   return (
     <KeyboardAvoidingView
@@ -373,6 +443,22 @@ const ChatScreen = () => {
             </View>
           </View>
         </View>
+
+        {/* Download Progress Bar */}
+        {isDownloading && (
+          <View className="mt-4 bg-white/10 rounded-lg p-3">
+            <View className="flex-row justify-between mb-2">
+              <Text className="text-white text-xs font-medium">{downloadStatus}</Text>
+              <Text className="text-white text-xs font-bold">{Math.round(downloadProgress * 100)}%</Text>
+            </View>
+            <View className="h-2 bg-white/20 rounded-full overflow-hidden">
+              <View
+                className="h-full bg-green-400 rounded-full"
+                style={{ width: `${downloadProgress * 100}%` }}
+              />
+            </View>
+          </View>
+        )}
       </View>
 
       {/* LISTA DE MENSAJES */}
@@ -389,7 +475,7 @@ const ChatScreen = () => {
       {/* FOOTER (INPUT AREA) */}
       <View className="bg-white dark:bg-slate-800 pb-32 pt-2 border-t border-slate-50 dark:border-slate-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-[30px]">
 
-        {!isTyping && (
+        {!isTyping && !isDownloading && (
           <View className="mb-3 px-2">
             <FlatList
               horizontal
@@ -412,13 +498,18 @@ const ChatScreen = () => {
         <View className="px-4 flex-row items-center gap-3">
           <TouchableOpacity
             onPress={toggleRecording}
+            disabled={isDownloading}
             className={`h-12 w-12 rounded-full items-center justify-center transition-all ${isRecording
               ? 'bg-red-500 shadow-red-200 shadow-lg scale-110'
-              : 'bg-slate-100 dark:bg-slate-700'
+              : isDownloading
+                ? 'bg-slate-100 opacity-50'
+                : 'bg-slate-100 dark:bg-slate-700'
               }`}
           >
             {isRecording ? (
               <View className="w-4 h-4 bg-white rounded-sm animate-pulse" />
+            ) : isDownloading ? (
+              <Download size={20} color="#94A3B8" />
             ) : (
               <Mic size={22} className="text-slate-600 dark:text-slate-400" color="#64748B" />
             )}
@@ -428,9 +519,9 @@ const ChatScreen = () => {
             <Input
               value={inputValue}
               onChangeText={setInputValue}
-              placeholder={isRecording ? "Escuchando..." : "Escribe aquí..."}
+              placeholder={isDownloading ? "Descargando modelos..." : isRecording ? "Escuchando..." : "Escribe aquí..."}
               placeholderTextColor="#94A3B8"
-              editable={!isTyping && !isRecording}
+              editable={!isTyping && !isRecording && !isDownloading}
               onSubmitEditing={sendMessage}
               className="flex-1 h-12 text-slate-700 dark:text-slate-200 text-base h-full bg-transparent border-0 p-0"
             />
@@ -438,7 +529,7 @@ const ChatScreen = () => {
 
           <TouchableOpacity
             onPress={sendMessage}
-            disabled={!inputValue.trim() || isTyping}
+            disabled={!inputValue.trim() || isTyping || isDownloading}
             className={`h-12 w-12 rounded-full items-center justify-center transition-all ${inputValue.trim()
               ? 'bg-[#002e90] shadow-lg shadow-blue-200 scale-100'
               : 'bg-slate-200 dark:bg-slate-700 scale-95'

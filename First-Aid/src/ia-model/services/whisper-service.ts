@@ -15,12 +15,24 @@ interface WhisperContext {
   release(): Promise<void>;
 }
 
+let whisperContext: WhisperContext | null = null;
+let isInitialized = false;
+
 /**
- * Transcribe audio usando Whisper offline
+ * Inicializa el modelo Whisper
  */
-export async function transcribeAudioOffline(audioUri: string): Promise<string> {
+export async function initializeWhisper(): Promise<boolean> {
+  if (isInitialized && whisperContext) {
+    return true;
+  }
+
+  if (!APP_CONFIG.WHISPER.ENABLED) {
+    console.log('💡 Whisper deshabilitado en configuración.');
+    return false;
+  }
+
   try {
-    console.log("🎤 Iniciando transcripción con Whisper...");
+    console.log("🎤 Inicializando Whisper...");
     
     // Importar whisper.rn dinámicamente
     // @ts-ignore
@@ -38,20 +50,42 @@ export async function transcribeAudioOffline(audioUri: string): Promise<string> 
     const fileInfo = await FileSystem.getInfoAsync(modelPath);
     if (!fileInfo.exists) {
       console.warn(`⚠️ Modelo Whisper no encontrado en: ${modelPath}`);
-      return "[Error: Modelo de voz no encontrado]";
+      return false;
     }
     
-    console.log('📦 Modelo Whisper:', modelPath);
+    console.log('📦 Cargando modelo Whisper:', modelPath);
     
     // Inicializar Whisper con el modelo
-    const whisperContext: WhisperContext = await initWhisper({
+    whisperContext = await initWhisper({
       filePath: modelPath,
     });
     
-    console.log("✅ Whisper inicializado, transcribiendo...");
+    isInitialized = true;
+    console.log("✅ Whisper inicializado correctamente");
+    return true;
+    
+  } catch (error) {
+    console.error("❌ Error al inicializar Whisper:", error);
+    return false;
+  }
+}
+
+/**
+ * Transcribe audio usando Whisper offline
+ */
+export async function transcribeAudioOffline(audioUri: string): Promise<string> {
+  try {
+    if (!isInitialized || !whisperContext) {
+      const success = await initializeWhisper();
+      if (!success) {
+        return "[Error: Modelo de voz no disponible]";
+      }
+    }
+
+    console.log("🎤 Transcribiendo audio...");
     
     // Transcribir el audio
-    const result = await whisperContext.transcribe(audioUri, {
+    const result = await whisperContext!.transcribe(audioUri, {
       language: APP_CONFIG.WHISPER.LANGUAGE,
       maxLen: 1,
       tokenTimestamps: false,
@@ -73,13 +107,26 @@ export async function transcribeAudioOffline(audioUri: string): Promise<string> 
     transcription = transcription.trim();
     console.log("✅ Transcripción completada:", transcription);
     
-    // Liberar recursos
-    await whisperContext.release();
-    
     return transcription || "[No se detectó audio claro]";
     
   } catch (error) {
     console.error("❌ Error en transcripción Whisper:", error);
     return "[Error al procesar el audio]";
+  }
+}
+
+/**
+ * Libera recursos de Whisper
+ */
+export async function releaseWhisper(): Promise<void> {
+  if (whisperContext) {
+    try {
+      await whisperContext.release();
+    } catch (e) {
+      console.warn("Error al liberar Whisper:", e);
+    }
+    whisperContext = null;
+    isInitialized = false;
+    console.log('🔄 Whisper liberado');
   }
 }

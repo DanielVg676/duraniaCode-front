@@ -74,9 +74,12 @@ export async function generateLLMResponse(
   userMessage: string,
   context: string = ''
 ): Promise<string> {
-  if (!llamaContext) {
-    console.warn('⚠️ Modelo LLM no inicializado.');
-    return '';
+  if (!isInitialized || !llamaContext) {
+    console.warn('⚠️ Modelo LLM no inicializado. Intentando inicializar...');
+    const success = await initializeLLM();
+    if (!success) {
+      return '';
+    }
   }
 
   try {
@@ -94,7 +97,7 @@ Contexto adicional: ${context}
 Situación: "${userMessage}"
 Instrucción:`;
 
-    const response = await llamaContext.completion(
+    const response = await llamaContext!.completion(
       {
         prompt,
         n_predict: 100,
