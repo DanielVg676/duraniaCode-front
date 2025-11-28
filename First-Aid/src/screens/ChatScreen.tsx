@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import * as Speech from 'expo-speech';
+import { Audio } from 'expo-av';
 import {
   Bot,
   Mic,
@@ -20,17 +21,24 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Alert
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withRepeat, 
-  withTiming, 
-  withSequence 
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withRepeat,
+  withTiming,
+  withSequence
 } from 'react-native-reanimated';
 
+import {
+  transcribeAudioOffline,
+  generateContextualResponse,
+  classifyEmergency,
+  initializeLLM
+} from '../ia-model';
 
 interface Message {
   id: string;
@@ -64,8 +72,8 @@ const StatusDot = ({ isActive }: { isActive: boolean }) => {
   }));
 
   return (
-    <Animated.View 
-      style={[{ width: 8, height: 8, borderRadius: 4 }, animatedStyle]} 
+    <Animated.View
+      style={[{ width: 8, height: 8, borderRadius: 4 }, animatedStyle]}
     />
   );
 };
@@ -79,13 +87,37 @@ const ChatScreen = () => {
       timestamp: new Date()
     }
   ]);
-  
+
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [ttsEnabled, setTtsEnabled] = useState(true);
+  const [llmInitialized, setLlmInitialized] = useState(false);
+  const [emergencyType, setEmergencyType] = useState<string>("otro");
+
   const flatListRef = useRef<FlatList>(null);
+
+  // Inicializar LLM
+  useEffect(() => {
+    initializeLLM().then(success => {
+      setLlmInitialized(success);
+      if (success) {
+        console.log('✅ LLM cargado y listo en ChatScreen');
+      }
+    });
+  }, []);
+
+  // Permisos de Audio
+  useEffect(() => {
+    (async () => {
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permisos necesarios", "Necesitamos acceso al micrófono para emergencias.");
+      }
+    })();
+  }, []);
 
   useEffect(() => {
     setTimeout(() => {
@@ -119,7 +151,7 @@ const ChatScreen = () => {
     try {
       Speech.stop();
       setIsSpeaking(false);
-    } catch (error) {}
+    } catch (error) { }
   }, []);
 
   const scrollToBottom = useCallback(() => {
@@ -134,27 +166,108 @@ const ChatScreen = () => {
     scrollToBottom();
   }, [messages, isTyping, scrollToBottom]);
 
-  const toggleRecording = () => {
-    setIsRecording(!isRecording);
-    if (!isRecording) {
-      setTimeout(() => {
-        setInputValue("Tengo un corte profundo en el brazo");
-        setIsRecording(false);
-      }, 2000);
+  // Lógica de Grabación
+  const startRecording = async () => {
+    try {
+      stopSpeaking();
+      setIsRecording(true);
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording: newRecording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+
+      setRecording(newRecording);
+    } catch (err) {
+      console.error("Error al iniciar grabación:", err);
+      setIsRecording(false);
     }
   };
 
-  const getAIResponse = (userMessage: string): string => {
-    const message = userMessage.toLowerCase();
-    if (message.includes('sangra') || message.includes('herida') || message.includes('corte')) {
-      return 'Para controlar una hemorragia:\n\n1. Ponte guantes o usa una barrera protectora\n2. Aplica presión directa sobre la herida con un paño limpio\n3. Mantén presión constante\n4. Eleva la zona afectada\n\n¿El sangrado es abundante?';
+  const stopRecordingAndTranscribe = async () => {
+    if (!recording) return;
+
+    try {
+      setIsRecording(false);
+      setIsTyping(true); // Mostrar indicador de carga mientras procesa
+
+      await recording.stopAndUnloadAsync();
+      const uri = recording.getURI();
+      setRecording(null);
+
+      if (uri) {
+        const transcription = await transcribeAudioOffline(uri);
+
+        if (!transcription || transcription.includes("[No se") || transcription.includes("[Audio capturado")) {
+          Alert.alert("Audio no claro", "No se pudo entender el audio. Intenta de nuevo.");
+          setIsTyping(false);
+          return;
+        }
+
+        const userMsg: Message = {
+          id: Date.now().toString(),
+          content: transcription,
+          sender: 'user',
+          timestamp: new Date()
+        };
+        setMessages(prev => [...prev, userMsg]);
+
+        await processAIResponse(transcription, [...messages, userMsg]);
+      }
+    } catch (err) {
+      console.error("Error al detener grabación:", err);
+      setIsTyping(false);
+      setIsRecording(false);
     }
-    return 'Entendido. Por favor, mantén la calma. Describe:\n\n• ¿La persona está consciente?\n• ¿Respira con dificultad?\n\nEstoy analizando tu respuesta...';
+  };
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecordingAndTranscribe();
+    } else {
+      startRecording();
+    }
+  };
+
+  // Procesamiento de IA
+  const processAIResponse = async (text: string, currentHistory: Message[]) => {
+    let type = emergencyType;
+
+    // Clasificar si es el inicio de la conversación o si no se ha detectado emergencia
+    if (messages.length <= 1 || emergencyType === 'otro') {
+      type = classifyEmergency(text);
+      setEmergencyType(type);
+    }
+
+    const historyForAI = currentHistory.map(m => ({ text: m.content, sender: m.sender }));
+
+    const responseText = await generateContextualResponse(
+      text,
+      type as any,
+      historyForAI,
+      llmInitialized
+    );
+
+    const aiMsg: Message = {
+      id: (Date.now() + 1).toString(),
+      content: responseText,
+      sender: 'ai',
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, aiMsg]);
+    setIsTyping(false);
+    speak(responseText);
   };
 
   const sendMessage = async () => {
     if (!inputValue.trim()) return;
 
+    stopSpeaking();
     const userMessage: Message = {
       id: Date.now().toString(),
       content: inputValue,
@@ -166,18 +279,7 @@ const ChatScreen = () => {
     setInputValue('');
     setIsTyping(true);
 
-    setTimeout(() => {
-      const aiResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: getAIResponse(userMessage.content),
-        sender: 'ai',
-        timestamp: new Date()
-      };
-      
-      setMessages(prev => [...prev, aiResponse]);
-      setIsTyping(false);
-      speak(aiResponse.content);
-    }, 2000);
+    await processAIResponse(inputValue, [...messages, userMessage]);
   };
 
   const renderMessage = ({ item: message }: { item: Message }) => {
@@ -185,29 +287,25 @@ const ChatScreen = () => {
     return (
       <View className={`flex ${isUser ? 'items-end' : 'items-start'} mb-6 px-4`}>
         <View className={`flex ${isUser ? 'flex-row-reverse' : 'flex-row'} items-end gap-3 max-w-[90%]`}>
-          <View className={`w-10 h-10 rounded-full items-center justify-center shadow-md ${
-            isUser ? 'bg-indigo-600' : 'bg-white'
-          }`} style={{ elevation: 4 }}>
+          <View className={`w-10 h-10 rounded-full items-center justify-center shadow-md ${isUser ? 'bg-indigo-600' : 'bg-white'
+            }`} style={{ elevation: 4 }}>
             {isUser ? (
-                <User size={20} color="white" />
+              <User size={20} color="white" />
             ) : (
-                <Bot size={24} color="#002e90" />
+              <Bot size={24} color="#002e90" />
             )}
           </View>
-          
-          <View className={`p-4 rounded-3xl shadow-sm ${
-            isUser 
-              ? 'bg-indigo-600 rounded-br-sm' 
-              : 'bg-white rounded-bl-sm border border-slate-100'
-          }`} style={{ elevation: 2 }}>
-            <Text className={`text-[15px] leading-6 ${
-              isUser ? 'text-white font-medium' : 'text-slate-800'
-            }`}>
+
+          <View className={`p-4 rounded-3xl shadow-sm ${isUser
+            ? 'bg-indigo-600 rounded-br-sm'
+            : 'bg-white rounded-bl-sm border border-slate-100'
+            }`} style={{ elevation: 2 }}>
+            <Text className={`text-[15px] leading-6 ${isUser ? 'text-white font-medium' : 'text-slate-800'
+              }`}>
               {message.content}
             </Text>
-            <Text className={`text-[10px] mt-2 text-right ${
-              isUser ? 'text-indigo-200' : 'text-slate-400'
-            }`}>
+            <Text className={`text-[10px] mt-2 text-right ${isUser ? 'text-indigo-200' : 'text-slate-400'
+              }`}>
               {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
             </Text>
           </View>
@@ -219,18 +317,18 @@ const ChatScreen = () => {
   const renderTypingIndicator = () => {
     if (!isTyping) return null;
     return (
-        <View className="flex items-start mb-6 px-4">
-            <View className="flex flex-row items-end gap-3">
-                <View className="w-10 h-10 rounded-full items-center justify-center bg-white shadow-md border border-slate-50">
-                    <Bot size={24} color="#002e90" />
-                </View>
-                <View className="bg-white p-4 rounded-3xl rounded-bl-sm border border-slate-100 shadow-sm min-w-[80px]">
-                    <Text className="text-slate-400 font-bold text-xl tracking-widest leading-4">
-                        ...
-                    </Text>
-                </View>
-            </View>
+      <View className="flex items-start mb-6 px-4">
+        <View className="flex flex-row items-end gap-3">
+          <View className="w-10 h-10 rounded-full items-center justify-center bg-white shadow-md border border-slate-50">
+            <Bot size={24} color="#002e90" />
+          </View>
+          <View className="bg-white p-4 rounded-3xl rounded-bl-sm border border-slate-100 shadow-sm min-w-[80px]">
+            <Text className="text-slate-400 font-bold text-xl tracking-widest leading-4">
+              ...
+            </Text>
+          </View>
         </View>
+      </View>
     );
   };
 
@@ -244,7 +342,7 @@ const ChatScreen = () => {
   const isActive = isTyping || isSpeaking;
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       className="flex-1 bg-slate-50 dark:bg-slate-900"
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
@@ -254,39 +352,26 @@ const ChatScreen = () => {
       {/* HEADER */}
       <View className="bg-[#002e90] pt-12 pb-6 px-5 rounded-b-[32px] shadow-lg z-10">
         <View className="flex-row items-center justify-between">
-            <View className="flex-row items-center gap-3">
-                <View className="bg-white/10 p-2.5 rounded-2xl border border-white/10">
-                    <Sparkles size={24} color="#60a5fa" fill="#60a5fa" /> 
-                </View>
-                <View>
-                    <Text className="font-bold text-xl text-white tracking-tight">FirstAId IA</Text>
-                    <View className="flex-row items-center gap-1.5 mt-0.5">
-                        <StatusDot isActive={isActive} />
-                        <Text className="text-xs text-blue-100 font-medium opacity-90">
-                            {getAssistantStatus()}
-                        </Text>
-                    </View>
-                </View>
-            </View>
-            
-            <View className="flex-row items-center gap-2">
-                <TouchableOpacity 
-                    onPress={() => {
-                        setTtsEnabled(!ttsEnabled);
-                        if (isSpeaking) stopSpeaking();
-                    }}
-                    className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/5"
-                >
-                    {ttsEnabled ? <Volume2 size={18} color="white" /> : <VolumeX size={18} color="#94a3b8" />}
-                </TouchableOpacity>
+          <View className="flex-row items-center gap-3">
+            <View className="bg-white/10 p-2.5 rounded-2xl border border-white/10">
+              <TouchableOpacity
+                onPress={() => {
+                  setTtsEnabled(!ttsEnabled);
+                  if (isSpeaking) stopSpeaking();
+                }}
+                className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/5"
+              >
+                {ttsEnabled ? <Volume2 size={18} color="white" /> : <VolumeX size={18} color="#94a3b8" />}
+              </TouchableOpacity>
 
-                <TouchableOpacity 
-                    className="bg-red-500 w-10 h-10 rounded-full items-center justify-center shadow-lg shadow-red-900/40"
-                    activeOpacity={0.8}
-                >
-                    <Phone size={18} color="white" fill="white" />
-                </TouchableOpacity>
+              <TouchableOpacity
+                className="bg-red-500 w-10 h-10 rounded-full items-center justify-center shadow-lg shadow-red-900/40"
+                activeOpacity={0.8}
+              >
+                <Phone size={18} color="white" fill="white" />
+              </TouchableOpacity>
             </View>
+          </View>
         </View>
       </View>
 
@@ -303,77 +388,75 @@ const ChatScreen = () => {
 
       {/* FOOTER (INPUT AREA) */}
       <View className="bg-white dark:bg-slate-800 pb-32 pt-2 border-t border-slate-50 dark:border-slate-800 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] rounded-t-[30px]">
-        
+
         {!isTyping && (
-            <View className="mb-3 px-2">
-                <FlatList 
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    data={['Sangrado fuerte', 'Quemadura', 'RCP', 'Me siento mareado', 'Fractura']}
-                    keyExtractor={(item) => item}
-                    contentContainerStyle={{ paddingHorizontal: 16 }}
-                    renderItem={({item}) => (
-                        <TouchableOpacity
-                            onPress={() => setInputValue(item)}
-                            className="mr-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2 rounded-2xl active:bg-blue-50"
-                        >
-                            <Text className="text-slate-600 dark:text-slate-300 text-xs font-semibold">{item}</Text>
-                        </TouchableOpacity>
-                    )}
-                />
-            </View>
+          <View className="mb-3 px-2">
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={['Sangrado fuerte', 'Quemadura', 'RCP', 'Me siento mareado', 'Fractura']}
+              keyExtractor={(item) => item}
+              contentContainerStyle={{ paddingHorizontal: 16 }}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => setInputValue(item)}
+                  className="mr-2 bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 px-4 py-2 rounded-2xl active:bg-blue-50"
+                >
+                  <Text className="text-slate-600 dark:text-slate-300 text-xs font-semibold">{item}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
         )}
 
         <View className="px-4 flex-row items-center gap-3">
-            <TouchableOpacity
-                onPress={toggleRecording}
-                className={`h-12 w-12 rounded-full items-center justify-center transition-all ${
-                    isRecording 
-                    ? 'bg-red-500 shadow-red-200 shadow-lg scale-110' 
-                    : 'bg-slate-100 dark:bg-slate-700'
-                }`}
-            >
-                {isRecording ? (
-                    <View className="w-4 h-4 bg-white rounded-sm animate-pulse" />
-                ) : (
-                    <Mic size={22} className="text-slate-600 dark:text-slate-400" color="#64748B" />
-                )}
-            </TouchableOpacity>
+          <TouchableOpacity
+            onPress={toggleRecording}
+            className={`h-12 w-12 rounded-full items-center justify-center transition-all ${isRecording
+              ? 'bg-red-500 shadow-red-200 shadow-lg scale-110'
+              : 'bg-slate-100 dark:bg-slate-700'
+              }`}
+          >
+            {isRecording ? (
+              <View className="w-4 h-4 bg-white rounded-sm animate-pulse" />
+            ) : (
+              <Mic size={22} className="text-slate-600 dark:text-slate-400" color="#64748B" />
+            )}
+          </TouchableOpacity>
 
-            <View className="flex-1 h-12 text-slate-700 dark:text-slate-200 text-base h-full bg-transparent border-0 p-0">
-                <Input
-                    value={inputValue}
-                    onChangeText={setInputValue}
-                    placeholder={isRecording ? "Escuchando..." : "Escribe aquí..."}
-                    placeholderTextColor="#94A3B8"
-                    editable={!isTyping && !isRecording}
-                    onSubmitEditing={sendMessage}
-                    className="flex-1 h-12 text-slate-700 dark:text-slate-200 text-base h-full bg-transparent border-0 p-0"
-                />
-            </View>
-            
-            <TouchableOpacity 
-                onPress={sendMessage}
-                disabled={!inputValue.trim() || isTyping}
-                className={`h-12 w-12 rounded-full items-center justify-center transition-all ${
-                    inputValue.trim() 
-                    ? 'bg-[#002e90] shadow-lg shadow-blue-200 scale-100' 
-                    : 'bg-slate-200 dark:bg-slate-700 scale-95'
-                }`}
-            >
-                <Send size={20} color={inputValue.trim() ? "white" : "#94A3B8"} style={{ marginLeft: 2 }} />
-            </TouchableOpacity>
+          <View className="flex-1 h-12 text-slate-700 dark:text-slate-200 text-base h-full bg-transparent border-0 p-0">
+            <Input
+              value={inputValue}
+              onChangeText={setInputValue}
+              placeholder={isRecording ? "Escuchando..." : "Escribe aquí..."}
+              placeholderTextColor="#94A3B8"
+              editable={!isTyping && !isRecording}
+              onSubmitEditing={sendMessage}
+              className="flex-1 h-12 text-slate-700 dark:text-slate-200 text-base h-full bg-transparent border-0 p-0"
+            />
+          </View>
+
+          <TouchableOpacity
+            onPress={sendMessage}
+            disabled={!inputValue.trim() || isTyping}
+            className={`h-12 w-12 rounded-full items-center justify-center transition-all ${inputValue.trim()
+              ? 'bg-[#002e90] shadow-lg shadow-blue-200 scale-100'
+              : 'bg-slate-200 dark:bg-slate-700 scale-95'
+              }`}
+          >
+            <Send size={20} color={inputValue.trim() ? "white" : "#94A3B8"} style={{ marginLeft: 2 }} />
+          </TouchableOpacity>
         </View>
 
         {isRecording && (
-            <View className="absolute -top-12 left-0 right-0 items-center">
-                <View className="bg-red-500 px-5 py-2 rounded-full shadow-lg flex-row items-center gap-2">
-                    <View className="w-2 h-2 bg-white rounded-full animate-bounce" />
-                    <View className="w-2 h-2 bg-white rounded-full animate-bounce delay-75" />
-                    <View className="w-2 h-2 bg-white rounded-full animate-bounce delay-150" />
-                    <Text className="text-white font-bold text-xs ml-1">GRABANDO</Text>
-                </View>
+          <View className="absolute -top-12 left-0 right-0 items-center">
+            <View className="bg-red-500 px-5 py-2 rounded-full shadow-lg flex-row items-center gap-2">
+              <View className="w-2 h-2 bg-white rounded-full animate-bounce" />
+              <View className="w-2 h-2 bg-white rounded-full animate-bounce delay-75" />
+              <View className="w-2 h-2 bg-white rounded-full animate-bounce delay-150" />
+              <Text className="text-white font-bold text-xs ml-1">GRABANDO</Text>
             </View>
+          </View>
         )}
       </View>
 
