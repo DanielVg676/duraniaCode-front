@@ -20,6 +20,7 @@ export interface Guide {
   specialCases?: SpecialCase[];
   tags: string[];
   keywords?: string; // Palabras ocultas para mejorar la búsqueda (sinónimos)
+  gif?: any;
 }
 
 export const guides: Record<string, Guide> = {
@@ -28,6 +29,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'critical',
     duration: 'Continuo',
     description: 'Protocolo para paro cardíaco (la persona no responde y no respira).',
+    gif: require('@/assets/cpr.gif'),
     steps: [
       { 
         title: 'Verificar Seguridad y Respuesta', 
@@ -68,6 +70,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'critical',
     duration: 'Inmediato',
     description: 'Interrupción del flujo sanguíneo al cerebro. ¡El tiempo es cerebro!',
+    gif: require('@/assets/stroke.jpg.webp'),
     steps: [
       {
         title: 'Prueba RÁPIDO (F.A.S.T.)',
@@ -99,6 +102,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'critical',
     duration: 'Inmediato',
     description: 'Bloqueo del flujo sanguíneo al corazón. La persona está consciente pero con dolor.',
+    gif: require('@/assets/heartAttack.gif'),
     steps: [
       {
         title: 'Identificar',
@@ -130,6 +134,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'high',
     duration: '5-15 min',
     description: 'Control de sangrado externo severo para prevenir shock.',
+    gif: require('@/assets/bleeding.gif'),
     steps: [
       { 
         title: 'Presión Directa', 
@@ -169,6 +174,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'medium',
     duration: '20 min',
     description: 'Lesiones por calor, químicos o electricidad.',
+    gif: require('@/assets/burn.gif'),
     steps: [
       { 
         title: 'Enfriar la zona', 
@@ -208,6 +214,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'critical',
     duration: 'Inmediato',
     description: 'Obstrucción de la vía aérea por cuerpo extraño.',
+    gif: require('@/assets/choking.gif'),
     steps: [
       { 
         title: 'Animar a toser', 
@@ -243,6 +250,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'high',
     duration: '2-5 min',
     description: 'Actividad eléctrica cerebral anormal no controlada.',
+    gif: require('@/assets/seizures.jpg'),
     steps: [
       { 
         title: 'Proteger cabeza', 
@@ -278,6 +286,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'high',
     duration: 'Variable',
     description: 'Dificultad severa para respirar por cierre de vías aéreas.',
+    gif: require('@/assets/asthma.gif'),
     steps: [
       {
         title: 'Posición',
@@ -309,6 +318,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'high',
     duration: '15 min',
     description: 'Nivel peligrosamente bajo de glucosa en sangre.',
+    gif: require('@/assets/diabe.jpg'),
     steps: [
       {
         title: 'Síntomas',
@@ -340,6 +350,7 @@ export const guides: Record<string, Guide> = {
     urgency: 'medium',
     duration: 'Inmovilizar',
     description: 'Pérdida de continuidad ósea.',
+    gif: require('@/assets/fractura.gif'),
     steps: [
       { 
         title: 'No mover', 

@@ -171,7 +171,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900">
-      <StatusBar style="light" />
+      {/* <StatusBar style="light" /> */}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 

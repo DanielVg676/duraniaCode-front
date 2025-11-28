@@ -2,6 +2,7 @@ import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, Clock, Phone, Shiel
 import React, { useState } from 'react';
 import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { Image } from 'react-native';
 
 // IMPORTACIÓN DE LOS DATOS SEPARADOS
 import { guides } from '@/data/guides';
@@ -141,6 +142,8 @@ const GuideDetailScreen = ({ route, guideId: propGuideId, onBack, navigation }: 
                 {currentStepData.content}
             </Text>
 
+
+
             {/* Warning Box (Si existe) */}
             {currentStepData.warning && (
                 <View className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800 rounded-2xl p-4 flex-row items-start">
@@ -154,6 +157,21 @@ const GuideDetailScreen = ({ route, guideId: propGuideId, onBack, navigation }: 
                 </View>
             )}
         </View>
+        {currentGuide.gif && (
+            <View className="mb-6 bg-white dark:bg-slate-800 rounded-3xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700">
+                <View className="px-4 py-3 border-b border-slate-100 dark:border-slate-700 flex-row items-center gap-2">
+                    <View className="w-2 h-2 rounded-full bg-red-500 animate-pulse" /> 
+                    <Text className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+                        Demostración Visual
+                    </Text>
+                </View>
+                <Image 
+                    source={currentGuide.gif} 
+                    style={{ width: '100%', height: 220 }} 
+                    resizeMode="cover" // O "contain" si quieres ver todo el borde
+                />
+            </View>
+        )}
         {/* SECCIÓN: CASOS ESPECIALES (NUEVO) */}
         {currentGuide.specialCases && currentGuide.specialCases.length > 0 && (
             <View className="mb-6">

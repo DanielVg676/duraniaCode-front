@@ -92,7 +92,7 @@ const SettingsScreen = () => {
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900">
-      <StatusBar style="light" />
+      {/* <StatusBar style="light" /> */}
       
       {/* HEADER DE MARCA (#002e90) */}
       <View className="bg-[#002e90] pt-14 pb-8 px-6 rounded-b-[32px] shadow-lg z-10 mb-6">
