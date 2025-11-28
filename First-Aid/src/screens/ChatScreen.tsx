@@ -14,7 +14,7 @@ import {
   Sparkles,
   Download
 } from 'lucide-react-native';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState, useContext } from 'react';
 import {
   FlatList,
   KeyboardAvoidingView,
@@ -26,6 +26,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { useNavigation, NavigationContext } from '@react-navigation/native';
 
 import Animated, {
   useSharedValue,
@@ -106,6 +107,19 @@ const ChatScreen = () => {
   const [downloadStatus, setDownloadStatus] = useState('');
 
   const flatListRef = useRef<FlatList>(null);
+
+  // Verificar contexto de navegación
+  const navigation = useNavigation();
+  const navContext = useContext(NavigationContext);
+
+  useEffect(() => {
+    if (!navContext) {
+      console.error("❌ ChatScreen rendered OUTSIDE NavigationContext!");
+      Alert.alert("Error Crítico", "ChatScreen fuera de contexto de navegación.");
+    } else {
+      console.log("✅ ChatScreen mounted with NavigationContext");
+    }
+  }, []);
 
   // Verificar y descargar modelos
   useEffect(() => {
@@ -414,8 +428,11 @@ const ChatScreen = () => {
   return (
     <KeyboardAvoidingView
       className="flex-1 bg-slate-50 dark:bg-slate-900"
+      // En iOS 'padding' es lo estándar. En Android 'height' suele funcionar mejor para evitar que se solape.
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+      // El offset ayuda a "levantar" la vista. 
+      // En iOS, si tienes un Header arriba, a veces necesitas compensar su altura (aprox 60-90px).
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 20}
     >
       {/* <StatusBar style="light" /> */}
 
@@ -424,23 +441,36 @@ const ChatScreen = () => {
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-3">
             <View className="bg-white/10 p-2.5 rounded-2xl border border-white/10">
-              <TouchableOpacity
-                onPress={() => {
-                  setTtsEnabled(!ttsEnabled);
-                  if (isSpeaking) stopSpeaking();
-                }}
-                className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/5"
-              >
-                {ttsEnabled ? <Volume2 size={18} color="white" /> : <VolumeX size={18} color="#94a3b8" />}
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                className="bg-red-500 w-10 h-10 rounded-full items-center justify-center shadow-lg shadow-red-900/40"
-                activeOpacity={0.8}
-              >
-                <Phone size={18} color="white" fill="white" />
-              </TouchableOpacity>
+              <Sparkles size={24} color="#60a5fa" fill="#60a5fa" />
             </View>
+            <View>
+              <Text className="font-bold text-xl text-white tracking-tight">FirstAId IA</Text>
+              <View className="flex-row items-center gap-1.5 mt-0.5">
+                <StatusDot isActive={isActive} />
+                <Text className="text-xs text-blue-100 font-medium opacity-90">
+                  {getAssistantStatus()}
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          <View className="flex-row items-center gap-2">
+            <TouchableOpacity
+              onPress={() => {
+                setTtsEnabled(!ttsEnabled);
+                if (isSpeaking) stopSpeaking();
+              }}
+              className="w-10 h-10 rounded-full bg-white/10 items-center justify-center border border-white/5"
+            >
+              {ttsEnabled ? <Volume2 size={18} color="white" /> : <VolumeX size={18} color="#94a3b8" />}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              className="bg-red-500 w-10 h-10 rounded-full items-center justify-center shadow-lg shadow-red-900/40"
+              activeOpacity={0.8}
+            >
+              <Phone size={18} color="white" fill="white" />
+            </TouchableOpacity>
           </View>
         </View>
 
