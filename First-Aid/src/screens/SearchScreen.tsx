@@ -152,7 +152,7 @@ const SearchScreen = ({ navigation }: SearchScreenProps) => {
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900">
-      <StatusBar style="light" />
+      {/* <StatusBar style="light" /> */}
       
       {/* HEADER DE BÚSQUEDA */}
       <View className="bg-[#002e90] pt-12 pb-6 px-6 rounded-b-[32px] shadow-lg z-10">

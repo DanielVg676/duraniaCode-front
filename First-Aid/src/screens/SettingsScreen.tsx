@@ -18,9 +18,14 @@ import {
   Smartphone,
   Users
 } from 'lucide-react-native';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Linking, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import {
+  isMonitoringActive,
+  startCrashMonitoring,
+  stopCrashMonitoring,
+} from '../native/crash';
 
 const SettingsScreen = () => {
   const { isDarkMode, toggleDarkMode } = useTheme();
@@ -28,6 +33,33 @@ const SettingsScreen = () => {
   const [offlineMode, setOfflineMode] = useState(true);
   const [locationEnabled, setLocationEnabled] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [isMonitoring, setIsMonitoring] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = async () => {
+      try {
+        const active = await isMonitoringActive();
+        setIsMonitoring(active);
+      } catch (error) {
+        console.error("Error checking monitoring status:", error);
+      }
+    };
+    checkStatus();
+  }, []);
+
+  const toggleMonitoring = async (isActive: boolean) => {
+    setIsMonitoring(isActive);
+    try {
+      if (isActive) {
+        await startCrashMonitoring();
+      } else {
+        await stopCrashMonitoring();
+      }
+    } catch (error) {
+      console.error("Failed to toggle crash monitoring:", error);
+      setIsMonitoring(!isActive);
+    }
+  };
 
   // Configuración de secciones
   const generalSettings = [
@@ -56,6 +88,15 @@ const SettingsScreen = () => {
       type: 'toggle',
       value: offlineMode,
       onToggle: () => setOfflineMode(!offlineMode)
+    },
+    {
+      id: 'crash_monitoring',
+      title: 'Monitoreo de Accidentes',
+      description: 'Detectar accidentes en segundo plano',
+      icon: Shield,
+      type: 'toggle',
+      value: isMonitoring,
+      onToggle: () => toggleMonitoring(!isMonitoring)
     },
   ];
 
@@ -92,7 +133,7 @@ const SettingsScreen = () => {
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900">
-      <StatusBar style="light" />
+    {/* <StatusBar style="light" /> */}
       
       {/* HEADER DE MARCA (#002e90) */}
       <View className="bg-[#002e90] pt-14 pb-8 px-6 rounded-b-[32px] shadow-lg z-10 mb-6">

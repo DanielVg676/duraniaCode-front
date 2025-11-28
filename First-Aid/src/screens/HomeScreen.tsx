@@ -14,23 +14,17 @@ import {
   Zap,
   UsersRound,
 } from "lucide-react-native";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import {
   Dimensions,
   FlatList,
   Image,
   ScrollView,
-  Switch,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  isMonitoringActive,
-  startCrashMonitoring,
-  stopCrashMonitoring,
-} from "../native/crash";
 
 const LifeAidLogo = require("@/assets/logo.png");
 
@@ -52,34 +46,7 @@ interface CarouselItem {
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const [emergencyContacts, setEmergencyContacts] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isMonitoring, setIsMonitoring] = useState(false);
   const flatListRef = useRef<FlatList>(null);
-
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const active = await isMonitoringActive();
-        setIsMonitoring(active);
-      } catch (error) {
-        console.error("Error checking monitoring status:", error);
-      }
-    }}, []);
-
-  // ++ AÑADIR FUNCIÓN PARA CONTROLAR EL INTERRUPTOR ++
-  const toggleMonitoring = async (isActive: boolean) => {
-    setIsMonitoring(isActive);
-    try {
-      if (isActive) {
-        await startCrashMonitoring();
-      } else {
-        await stopCrashMonitoring();
-      }
-    } catch (error) {
-      console.error("Failed to toggle crash monitoring:", error);
-      // Revertir el estado si hay un error
-      setIsMonitoring(!isActive);
-    }
-  };
 
   const slides: CarouselItem[] = [
     {
@@ -171,7 +138,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   return (
     <View className="flex-1 bg-slate-50 dark:bg-slate-900">
-      <StatusBar style="light" />
+      {/* <StatusBar style="light" /> */}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
 
@@ -306,26 +273,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </View>
               <Text className="text-slate-300 text-2xl font-light">›</Text>
             </TouchableOpacity>
-          </View>
-          <View className="bg-white dark:bg-slate-800 rounded-2xl shadow-sl border border-slate-200 dark:border-slate-700 p-4 flex-row items-center justify-between mt-4">
-            <View className="flex-row items-center">
-              <View className="bg-blue-50 p-3 rounded-2xl mr-4">
-                <Shield size={24} color="#3B82F6" />
-              </View>
-              <View>
-                <Text className="font-bold text-lg text-slate-800 dark:text-slate-100">
-                  Monitoreo de Accidentes
-                </Text>
-                <Text className="text-slate-500 text-sm">Detectar accidentes en segundo plano</Text>
-              </View>
-            </View>
-            <Switch
-              trackColor={{ false: "#767577", true: "#81b0ff" }}
-              thumbColor={isMonitoring ? "#3B82F6" : "#f4f3f4"}
-              ios_backgroundColor="#3e3e3e"
-              onValueChange={toggleMonitoring}
-              value={isMonitoring}
-            />
           </View>
         </View>
 
